@@ -74,9 +74,9 @@ def algorithm(n):
     
     return bForest
 
-def skarbek(n, doPrint): # n = # of internal nodes
+def skarbek(n, print_to_console): # n = # of internal nodes
     ARList = algorithm(int(n))
-    if doPrint:
+    if print_to_console:
         for tree in ARList:
             tree.print()
             print('\n')
