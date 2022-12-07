@@ -1,0 +1,5 @@
+** References **
+
+Skarbek, W. (1988). Generating ordered trees. Theoretical Computer Science, 57(1), 153–159. https://doi.org/10.1016/0304-3975(88)90169-7 
+
+Stockmeyer, L. (1983). Optimal orientations of cells in slicing floorplan designs. Information and Control, 57(2-3), 91–101. https://doi.org/10.1016/s0019-9958(83)80038-2 
