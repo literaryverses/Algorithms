@@ -7,5 +7,10 @@ A collection of personal projects to explore some algorithms in python. Within e
 ## Floorplans <a name="floorplans"></a>
 In electronic design automation, a floorplan of an integrated circuit is a schematics representation of tentative placement of its major functional blocks. Here, I look into mathematical models to generate the optimal floorplan.
 
-### Skarbek.py
-Using Skarbek's algorithm to create permutations of array representations of binary trees based on a given number of internal nodes. An array representation is given a top row representing the left subtrees and a bottom row representing the right subtrees, and each column represents an internal node in order of preorder traversal.
+### internalAR.py
+Returns iterations of a binary tree based on *n* internal nodes via recursion. The iterations are provided as array representation: the top row represents the left subtrees, the bottom row represents the right subtrees, and each column represents an internal node in order of preorder traversal.
+
+### skarbek.py
+Performs the same operation as internalAR.py, but uses Skarbek's Algorithm instead. The algorithm is nonrecursive and its runtime per tree is O(1). References are provided in floorplans/resources.txt
+
+### expand
