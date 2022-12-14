@@ -1,3 +1,5 @@
+# Provides a binary tree in array representation via recursion
+
 class ArrayRepesentation:
     def __init__(self, total):
         self.l = [None]*total
@@ -27,7 +29,7 @@ def getSums(n):
         sums[x] = n-x
     return sums
 
-def enum(n, order): #pass in 1 as order first
+def enum(n, order): # pass in 1 as order first
     if n==0:
         return [Node(0)]
     if n==1:
@@ -51,9 +53,9 @@ def enum(n, order): #pass in 1 as order first
 def internalAR(n, print_to_console): # n = number of internal nodes
     tArray = ArrayRepesentation(n)
 
-    fn = enum(n,1) #create set of binary trees
+    fn = enum(n,1) # create set of binary trees
     if print_to_console:
         for tree in fn:
-            tArray.translate(tree) #convert tree to array representation
+            tArray.translate(tree) # convert tree to array representation
             print(tArray,'\n')
     return fn
