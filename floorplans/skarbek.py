@@ -1,3 +1,5 @@
+# Provides a binary tree in array representation via Skarbek's algorithm
+
 import copy
 
 class ArrayTree:
