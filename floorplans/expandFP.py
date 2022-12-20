@@ -3,7 +3,7 @@
 import re
 from collections import namedtuple
 
-class Module:
+class Rectangle:
     def __init__(self, height, width):
         self.width = width
         self.height = height
@@ -33,7 +33,7 @@ def castFromPE(pe, dimensions): # cast dimensions onto PE operands
         if isRoot(char):
             continue
         else:
-            modules[char] = Module(dimensions[i][0], dimensions[i][1])
+            modules[char] = Rectangle(dimensions[i][0], dimensions[i][1])
     return modules
 
 def calculate(x, y, operator): # calculate new rectangle via operator
@@ -44,7 +44,7 @@ def calculate(x, y, operator): # calculate new rectangle via operator
     elif operator == '+':
         height = x.height + y.height
         width = max(x.width, y.width)
-    return Module(height, width)
+    return Rectangle(height, width)
     
 def translate(pe, modules): # finds final rectangle from PE
     i = 0
