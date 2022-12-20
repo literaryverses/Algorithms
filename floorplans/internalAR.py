@@ -19,8 +19,7 @@ class ArrayRepesentation:
 
 class Node:
     def __init__(self, preorderNumber):
-        self.lchild = None
-        self.rchild = None
+        self.lchild = self.rchild = None
         self.data = preorderNumber
 
 def getSums(n): # generate paired sums of n
