@@ -4,8 +4,7 @@ import copy
 
 class ArrayTree:
     def __init__(self, total, index):
-        self.l = [None]*total
-        self.r = [None]*total
+        self.l = self.r = [None]*total
         self.order = index
     def copy(self, other):
         self.l = copy.deepcopy(other.l)
