@@ -34,17 +34,41 @@ def normalize(pe): # converts PE to normalized PE
                 peList[i] = operatorMake(0)
     return ' '.join(peList)
 
-def getRectangle(node, fp): # get rectangle from node in binary tree
+def getRectangle(node, rects): # get rectangle from node in binary tree
     if isinstance(node, Node): return node.data[1] # internal node
-    else: return fp[node] # external node
+    else: return rects[node] # external node
 
-def setRectangle(node, newRect, fp): # updates node with new rectangle
+def setRectangle(node, newRect, rects): # updates node with new rectangle
     if isinstance(node, Node): node.data[1] = newRect # internal node
-    else: fp[node] = newRect # external node
+    else: rects[node] = newRect # external node
 
-def fpMake(pe):
+def fitRectangle(root, rects): # fits the dimensions of adjacent rectangles
+    if not isinstance(root, Node):
+        return
+    operator = root.data[1]
+    lRect = getRectangle(root.lchild, rects)
+    rRect = getRectangle(root.rchild, rects)
+    if operator == '+': # horizontal slice
+        if lRect.width < rRect.width:
+            lRect.width = rRect.width
+            setRectangle(root.lchild, lRect, rects)
+        elif rRect.width < lRect.width:
+            rRect.width = lRect.width
+            setRectangle(root.rchild, rRect, rects)
+    elif operator == '*': # vertical slice
+        if lRect.height < rRect.height:
+            lRect.height = rRect.height
+            setRectangle(root.lchild, lRect, rects)
+        elif rRect.height < lRect.height:
+            rRect.height = lRect.height
+            setRectangle(root.rchild, rRect, rects)
+    fitRectangle(root.lchild, rects)
+    fitRectangle(root.rchild, rects)
+
+ # determines the dimensions of the rectangles via postorder traversal
+def rectMake(pe):
     i = 0
-    fp = dict()
+    rects = dict()
     bTree = copy(pe).split()
     while (len(bTree)>1):
         char = bTree[i]
@@ -53,49 +77,26 @@ def fpMake(pe):
             node.lchild = bTree.pop(i-2)
             node.rchild = bTree.pop(i-2)
             node.data = [char, 
-                calculate(getRectangle(node.lchild, fp),
-                    getRectangle(node.rchild, fp),
+                calculate(getRectangle(node.lchild, rects),
+                    getRectangle(node.rchild, rects),
                     char)]
             bTree[i-2] = node
             i-=1
         else:
-            fp[bTree[i]] = Rectangle(1, 1)
+            rects[bTree[i]] = Rectangle(1, 1)
             i+=1
-    fit(bTree[0], fp)
-    return fp
-
-def fit(root, fp): # fits the dimensions of adjacent rectangles
-    if not isinstance(root, Node):
-        return
-    operator, dRect = root.data
-    lRect = getRectangle(root.lchild, fp)
-    rRect = getRectangle(root.rchild, fp)
-    if operator == '+': # horizontal slice
-        if lRect.width < rRect.width:
-            lRect.width = rRect.width
-            setRectangle(root.lchild, lRect, fp)
-        elif rRect.width < lRect.width:
-            rRect.width = lRect.width
-            setRectangle(root.rchild, rRect, fp)
-    elif operator == '*': # vertical slice
-        if lRect.height < rRect.height:
-            lRect.height = rRect.height
-            setRectangle(root.lchild, lRect, fp)
-        elif rRect.height < lRect.height:
-            rRect.height = lRect.height
-            setRectangle(root.rchild, rRect, fp)
-    fit(root.lchild, fp)
-    fit(root.rchild, fp)
+    fitRectangle(bTree[0], rects)
+    return rects
 
 def polishExp(n): # generates PE from given # of slices
     return reGenerate(0, n) # starts off with 0 operands
 
 def createFP(total, print_to_console): # returns random PE and FP given # of slices
     pe = normalize(polishExp(int(total)))
-    floorplan = fpMake(pe)
+    rects = rectMake(pe)
 
     if print_to_console:
         print(f'Polish Expression: \n {pe}')
-        for key, value in floorplan.items():
+        for key, value in rects.items():
             print(f'Rectangle {key}:\n\t{value}')
-    return pe, floorplan
+    return pe, rects

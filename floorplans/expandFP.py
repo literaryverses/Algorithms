@@ -26,14 +26,14 @@ def getDimensions(dimStr): # extract dimensions from string
             dimensions.append((h,w))
     return dimensions
 
-def castFromPE(pe, dimensions): # cast dimensions onto PE operands
-    modules = dict()
+def bindToPE(pe, dimensions): # cast dimensions onto PE operands
+    rects = dict()
     for i, char in enumerate(filter(lambda x: not isRoot(x), pe.split())):
         if isRoot(char):
             continue
         else:
-            modules[char] = Rectangle(dimensions[i][0], dimensions[i][1])
-    return modules
+            rects[char] = Rectangle(dimensions[i][0], dimensions[i][1])
+    return rects
 
 def calculate(x, y, operator): # calculate new rectangle via operator
     height = width = 0
@@ -45,7 +45,7 @@ def calculate(x, y, operator): # calculate new rectangle via operator
         width = max(x.width, y.width)
     return Rectangle(height, width)
     
-def translate(pe, modules): # finds final rectangle from PE
+def translate(pe, rects): # finds enveloping rectangle from PE
     i = 0
     pe = pe.split()
     while (len(pe)>1):
@@ -54,11 +54,11 @@ def translate(pe, modules): # finds final rectangle from PE
             pe[i-2] = calculate(pe.pop(i-2), pe.pop(i-2), char)
             i-=1
         else:
-            pe[i] = modules[pe[i]]
+            pe[i] = rects[pe[i]]
             i+=1
     return pe[0]
 
 # Returns the height of width of floorplan given a PE and dimensions
 def expandFP(pe, dimensions):
-    answer = translate(pe, castFromPE(pe, dimensions))
+    answer = translate(pe, bindToPE(pe, dimensions))
     return answer.height, answer.width
