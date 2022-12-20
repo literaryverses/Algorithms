@@ -79,5 +79,3 @@ def skarbek(n, print_to_console): # n = # of internal nodes
             tree.print()
             print('\n')
     return ARList
-
-skarbek(4, True)
