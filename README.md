@@ -13,4 +13,5 @@ Returns iterations of a binary tree based on *n* internal nodes via recursion. T
 ### skarbek.py
 Performs the same operation as internalAR.py, but uses Skarbek's Algorithm instead. The algorithm is nonrecursive and its runtime per tree is O(1). References are provided in floorplans/resources.txt
 
-### expand
+### expandFP.py
+Slicing floorplans can be represented by Polish Expressions. Given a set of dimensions and a Polish Expression, this program caculates the overall height and width of the floorplan.
