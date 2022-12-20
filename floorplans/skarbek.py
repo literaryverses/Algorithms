@@ -11,13 +11,12 @@ class ArrayTree:
         self.l = copy.deepcopy(other.l)
         self.r = copy.deepcopy(other.r)
     def print(self):
-        print('Iteration %d' % self.order)
-        n = len(self.r)
-        for i in range(0, n, 1):
-            print(self.l[i], end = ' ')
-        print()
-        for i in range(0, n, 1):
-            print(self.r[i], end = ' ')
+        print(f'Iteration {self.order}')
+        printing = self.l[:-1] + self.r
+        for i,x in enumerate(printing):
+            if i==len(printing)/2:
+                print()
+            print(x, end = ' ')
     
 def visitTree(bTree, n):
     # P3 Find j
@@ -38,8 +37,7 @@ def visitTree(bTree, n):
     if k>0:
         bTree.r[k-1] = 0
     else:
-        bTree.l[j-1] = 0
-    
+        bTree.l[j-1] = 0    
     bTree.r[y-1] = bTree.r[j-1]
     bTree.r[j-1] = y
     return bTree
@@ -54,7 +52,6 @@ def algorithm(n):
     else:
         bTree = ArrayTree(n,index)
         bForest = []
-
         while (bTree != None):
             if (index==1): # P1 initialize
                 for k in range(0,n-1,1):
@@ -73,7 +70,6 @@ def algorithm(n):
             index+=1
             bTree = ArrayTree(n, index)
             bTree.copy(doneTree)
-    
     return bForest
 
 def skarbek(n, print_to_console): # n = # of internal nodes
@@ -83,3 +79,5 @@ def skarbek(n, print_to_console): # n = # of internal nodes
             tree.print()
             print('\n')
     return ARList
+
+skarbek(4, True)
