@@ -1,14 +1,13 @@
 # Calculates the overall height and width of a slicing floorplan
 
-import re
-from collections import namedtuple
+from re import compile
 
 class Rectangle:
     def __init__(self, height, width):
         self.width = width
         self.height = height
-    def print(self):
-        print(f'Height: {self.height}, Width: {self.width}')
+    def __str__(self):
+        return f'Height: {self.height}, Width: {self.width}'
 
 def isRoot(operator):
     if operator == '*': return True # vertical slice 
@@ -17,7 +16,7 @@ def isRoot(operator):
 
 def getDimensions(dimStr): # extract dimensions from string
     dimensions = []
-    dimRegex = re.compile(r'\d+,\d+|\d+, \d+')
+    dimRegex = compile(r'\d+,\d+|\d+, \d+')
     for dim in dimRegex.findall(dimStr):
         if dim[dim.index(',')+1].isdigit():
             h, w = [int(x) for x in dim.split(',')]
@@ -38,10 +37,10 @@ def castFromPE(pe, dimensions): # cast dimensions onto PE operands
 
 def calculate(x, y, operator): # calculate new rectangle via operator
     height = width = 0
-    if operator == '*':
+    if operator == '*': # vertical slice 
         height = max(x.height, y.height)
         width = x.width + y.width
-    elif operator == '+':
+    elif operator == '+': # horizontal slice 
         height = x.height + y.height
         width = max(x.width, y.width)
     return Rectangle(height, width)
@@ -50,9 +49,9 @@ def translate(pe, modules): # finds final rectangle from PE
     i = 0
     pe = pe.split()
     while (len(pe)>1):
-        operator = pe[i]
-        if isRoot(operator):
-            pe[i-2] = calculate(pe.pop(i-2), pe.pop(i-2), operator)
+        char = pe[i]
+        if isRoot(char):
+            pe[i-2] = calculate(pe.pop(i-2), pe.pop(i-2), char)
             i-=1
         else:
             pe[i] = modules[pe[i]]
