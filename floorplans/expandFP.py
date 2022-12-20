@@ -59,15 +59,7 @@ def translate(pe, modules): # finds final rectangle from PE
             i+=1
     return pe[0]
 
-def manual():
-    pe = input("Enter Polish Expression: ")
-    dim = input("Enter Dimensions: ")
-    '''
-    Example input: "(4,2) (2,2) (1,1) (1,1) H (2,1) V H V"
-    Example output: "Height: 4, Width: 4"
-    '''
-    return expandFP(pe, getDimensions(dim))
-
-def expandFP(pe, dimensions): # Takes in a PE and dimensions
+# Returns the height of width of floorplan given a PE and dimensions
+def expandFP(pe, dimensions):
     answer = translate(pe, castFromPE(pe, dimensions))
     return answer.height, answer.width
