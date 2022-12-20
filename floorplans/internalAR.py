@@ -7,13 +7,13 @@ class ArrayRepesentation:
     def __str__(self):
         line1 = ' '.join([str(n) for n in self.l])
         line2 = ' '.join([str(n) for n in self.r])
-        return line1+'\n'+line2
+        return f'{line1}\n{line2}'
     def translate(self, tree):
-        order = tree.preorderNumber-1
+        order = tree.data-1
         if order < 0:
             return
-        self.l[order] = tree.lchild.preorderNumber
-        self.r[order] = tree.rchild.preorderNumber
+        self.l[order] = tree.lchild.data
+        self.r[order] = tree.rchild.data
         self.translate(tree.lchild)
         self.translate(tree.rchild)
 
@@ -21,15 +21,15 @@ class Node:
     def __init__(self, preorderNumber):
         self.lchild = None
         self.rchild = None
-        self.preorderNumber = preorderNumber
+        self.data = preorderNumber
 
-def getSums(n):
+def getSums(n): # generate paired sums of n
     sums = dict()
     for x in range(0, n+1, 1):
         sums[x] = n-x
     return sums
 
-def enum(n, order): # pass in 1 as order first
+def enum(n, order): # create binary set of trees
     if n==0:
         return [Node(0)]
     if n==1:
@@ -53,9 +53,9 @@ def enum(n, order): # pass in 1 as order first
 def internalAR(n, print_to_console): # n = number of internal nodes
     tArray = ArrayRepesentation(n)
 
-    fn = enum(n,1) # create set of binary trees
+    fn = enum(n,1) # pass in 1 as order first
     if print_to_console:
-        for tree in fn:
+        for i, tree in enumerate(fn):
             tArray.translate(tree) # convert tree to array representation
-            print(tArray,'\n')
+            print(f'Iteration {i}\n{tArray}\n')
     return fn
