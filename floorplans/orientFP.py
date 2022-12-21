@@ -98,7 +98,6 @@ def orientFP(pe, dimStr, eq, print_to_console):
     pe = pe.split()
     rotated_dimensions = getRotateDims(getDimensions(dimStr))
     rects = bindToPE(pe, rotated_dimensions)
-
     envelopingRect, rects = translate(pe, rects, eq)
 
     if print_to_console:

@@ -18,12 +18,12 @@ def reGenerate(operand, operator): # recursively generate PE
     else:
         if randint(0,1) == 1:
             return f'{operand} \
-                {reGenerate(operand+1, operator-1)} \
-                {operatorMake(randint(0,1))}'
+            {reGenerate(operand+1, operator-1)} \
+            {operatorMake(randint(0,1))}'
         else:
             return f'{reGenerate(operand+1, operator-1)} \
-                {operand} \
-                {operatorMake(randint(0,1))}'
+            {operand} \
+            {operatorMake(randint(0,1))}'
 
 def normalize(pe): # converts PE to normalized PE
     for i, x in enumerate(peList := pe.split()):
@@ -78,8 +78,8 @@ def rectMake(pe):
             node.rchild = bTree.pop(i-2)
             node.data = [char, 
                 calculate(getRectangle(node.lchild, rects),
-                    getRectangle(node.rchild, rects),
-                    char)]
+                getRectangle(node.rchild, rects), 
+                char)]
             bTree[i-2] = node
             i-=1
         else:
@@ -97,6 +97,5 @@ def createFP(total, print_to_console): # returns random PE and FP given # of sli
 
     if print_to_console:
         print(f'Polish Expression: \n {pe}')
-        for key, value in rects.items():
-            print(f'Rectangle {key}:\n\t{value}')
+        [print(f'Rectangle {key}:\n\t{value}') for key, value in rects.items()]
     return pe, rects
