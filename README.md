@@ -2,7 +2,16 @@
 A collection of personal projects to explore some algorithms in python. Within each folder is a topic which contains the code and a textfile for references.
 
 ## Table of contents
-1. [Floorplans](#floorplans)
+1. [Sorting](#sorting)
+2. [Floorplans](#floorplans)
+
+
+## Sorting <a name="sorting"></a>
+Sorting is an operation that puts elements of an array into an order, most frequently numerical or lexicographical. Here, I explore different types of sorting algorithms and their methods.
+
+### bubblesort.py
+Bubble sort is simplest and most impractical sorting algorithm that swaps out adjacent elements if they are in the wrong order, with a runtime of O(n<sup>2<sup>). Variants of bubble sorting is explored, such as modified bubble sort (which quits when no swaps are made) and cocktail shaker sort (bidirectional bubble sort).
+
 
 ## Floorplans <a name="floorplans"></a>
 In electronic design automation, a floorplan of an integrated circuit is a schematics representation of tentative placement of its major functional blocks. Here, I look into mathematical models to generate the optimal floorplan.
