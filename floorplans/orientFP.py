@@ -28,7 +28,7 @@ def getRotateDims(dimensions): # add in dimensional changes via rotations
         h, w = dimension
         if h==w:
             dimensions[i] = [(h, w)]
-        if h>w:
+        elif h>w:
             dimensions[i] = [(h, w), (w, h)]
         elif h<w:
             dimensions[i] = [(w, h), (h, w)]

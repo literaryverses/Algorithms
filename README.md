@@ -12,6 +12,8 @@ Sorting is an operation that puts elements of an array into an order, most frequ
 ### bubblesort.py
 Bubble sort is simplest and most impractical sorting algorithm that swaps out adjacent elements if they are in the wrong order, with a runtime of O(n<sup>2<sup>). Variants of bubble sorting is explored, such as modified bubble sort (which quits when no swaps are made) and cocktail shaker sort (bidirectional bubble sort).
 
+### insertsort.py
+Insertion sort partitions an array and then inserts elements from the unsorted section to the sorted one. Variants of this algorithm uses two-way insertion or binary insertion
 
 ## Floorplans <a name="floorplans"></a>
 In electronic design automation, a floorplan of an integrated circuit is a schematics representation of tentative placement of its major functional blocks. Here, I look into mathematical models to generate the optimal floorplan.
