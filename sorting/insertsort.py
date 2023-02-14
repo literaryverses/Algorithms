@@ -11,7 +11,7 @@ def insertsort(array): # straight insert sorting
     return array
 
 def binary_insertsort(array): # incorporates binary search
-    def withinRange(x):
+    def withinRange(x): # keeps parameters within range of array
         if x < 0: return 0
         elif x == len(array): return x-1
         else: return x
@@ -56,10 +56,11 @@ def shellsort(array, seqType): # Shell's algorithm
     gaps = [x:=1]
     n = len(array)
     
-    # Get gap sequence
+    # gap sequences
     shell_fx = lambda x: 2**(x-1)
     knuth_fx = lambda x: (3**x - 1) // 2
     sedgwick_fx = lambda x:  4**x + 3 * 2**(x-1) + 1
+
     if seqType.lower() == "shell": # n / 2^k
         while (gaps[0] <= n // 2):
             gaps.insert(0, shell_fx(x:=x+1))
@@ -69,11 +70,11 @@ def shellsort(array, seqType): # Shell's algorithm
     elif seqType.lower() == "sedgwick": # 4^k + 3*2^(k-1) + 1
         while (gaps[0] < n):
             gaps.insert(0, sedgwick_fx(x:=x+1))
-    gaps.pop(0)
+    gaps.pop(0) # remove since gap[0] > n
 
     for gap in gaps:
-        for j in range(gap, n, ): # within each gap
-            for i in range(j, 0, -gap):
+        for j in range(gap, n): # elements in array, left to right
+            for i in range(j, 0, -gap): # elements in gap, right to left
                 if i >= gap and array[i - gap] > array[i]:
                     array[i], array[i - gap] = array[i - gap], array[i] # bypass key via multiple assignment
     
