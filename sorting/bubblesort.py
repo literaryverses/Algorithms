@@ -4,7 +4,6 @@ def bubblesort(array): # standard bubble sort algorithm
     n = len(array)
     for i in range(0, n-1):
         for j in range(0, n-i-1):
-            print(array)
             if array[j] > array[j+1]:
                 array[j], array[j+1] = array[j+1], array[j]
     return array
@@ -14,7 +13,6 @@ def modified_bubblesort(array): # modified bubble sort algorithm
     for i in range(0, n-1):
         swapped = False
         for j in range(0, n-i-1):
-            print(array)
             if array[j] > array[j+1]:
                 swapped = True
                 array[j], array[j+1] = array[j+1], array[j]
