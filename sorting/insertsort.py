@@ -1,4 +1,4 @@
-# Performs bubble sort algorithms
+# Performs insertsort algorithms
 
 def insertsort(array): # straight insert sorting
     for j in range(1, len(array)):
@@ -13,7 +13,7 @@ def insertsort(array): # straight insert sorting
 def binary_insertsort(array): # incorporates binary search
     def withinRange(x):
         if x < 0: return 0
-        elif x == len(array): x-=1
+        elif x == len(array): return x-1
         else: return x
     def binarysearch(begin, k, end):
         mid = ( (begin := withinRange(begin)) + (end:=withinRange(end)) ) // 2
@@ -52,8 +52,29 @@ def twoway_insertsort(array): # bidirectional insert sorting
             array.insert(i, k)
     return array
     
-def shellsort():
-    return
+def shellsort(array, seqType): # Shell's algorithm
+    gaps = [x:=1]
+    n = len(array)
+    
+    # Get gap sequence
+    shell_fx = lambda x: 2**(x-1)
+    knuth_fx = lambda x: (3**x - 1) // 2
+    sedgwick_fx = lambda x:  4**x + 3 * 2**(x-1) + 1
+    if seqType.lower() == "shell": # n / 2^k
+        while (gaps[0] <= n // 2):
+            gaps.insert(0, shell_fx(x:=x+1))
+    elif seqType.lower() == "knuth": # (3^k - 1)/2
+        while (gaps[0] < n):
+            gaps.insert(0, knuth_fx(x:=x+1))
+    elif seqType.lower() == "sedgwick": # 4^k + 3*2^(k-1) + 1
+        while (gaps[0] < n):
+            gaps.insert(0, sedgwick_fx(x:=x+1))
+    gaps.pop(0)
 
-list = [10, 8, 13, 17, 5, 2, 9, 6, 20, 18, 4, 3,11,15,14,19, 1,12, 7,16]
-print(binary_insertsort(list))
+    for gap in gaps:
+        for j in range(gap, n, ): # within each gap
+            for i in range(j, 0, -gap):
+                if i >= gap and array[i - gap] > array[i]:
+                    array[i], array[i - gap] = array[i - gap], array[i] # bypass key via multiple assignment
+    
+    return array
