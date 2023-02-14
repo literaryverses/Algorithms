@@ -18,20 +18,40 @@ class Cell:
         return self.links.keys
 
     def isLinked(self, cell):
-        return self.links[cell]
+        return self.links.get(cell)
+    
+    def getNeighbor(self, direction):
+        return self.neighbors[direction]
 
     def getNeighbors(self):
         return self.neighbors.values
 
-    def setNeighbor(self, cell, direction):
-        self.neighbors[direction] = cell
 
 class Grid:
     def __init__(self, rows, columns):
         self.rows = rows
         self.cols = columns
-        self.grid[rows][columns]
+        self.grid = [[0 for c in range(columns)] for r in range(rows)]
         self.prepareGrid()
+
+    def __str__(self):
+        top_boundary = f'+' + '---+' * self.cols + '\n'
+        for row in self.each_row():
+            top = "|"
+            bottom = '+'
+            for cell in row:
+                body = south_boundary = '   ' # three spaces
+                east_boundary = ' '
+                if not cell.isLinked(cell.getNeighbor('east')):
+                    east_boundary = '|'
+                top += (body + east_boundary)
+
+                if not cell.isLinked(cell.getNeighbor('south')):
+                    south_boundary = '---'
+                corner = '+'
+                bottom += (south_boundary + corner)
+            top_boundary += (top + '\n' + bottom + '\n')
+        return top_boundary
 
     def prepareGrid(self):
         for row in range(self.rows):
@@ -48,8 +68,8 @@ class Grid:
         cell.neighbors['east'] = self.getCell(row, col+1)
 
     def getCell(self, row, col):
-        if row < 0 or col < 0 or row > self.rows or col > self.cols:
-            return None # if out of bounds
+        if row < 0 or col < 0 or row == self.rows or col == self.cols:
+            return # if out of bounds
         else:
             return self.grid[row][col]
     

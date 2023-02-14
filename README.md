@@ -14,13 +14,18 @@ Sorting is an operation that puts elements of an array into an order, most frequ
 Bubble sort is simplest and most impractical sorting algorithm that swaps out adjacent elements if they are in the wrong order, with a runtime of O(n<sup>2</sup>). Variants of bubble sorting is explored, such as modified bubble sort (which quits when no swaps are made) and cocktail shaker sort (bidirectional bubble sort).
 
 ### insertsort.py
-Insertion sort partitions an array and then inserts elements from the unsorted section to the sorted one. Variants of this algorithm uses two-way insertion or binary insertion
+Insertion sort partitions an array and then inserts elements from the unsorted section to the sorted one. Variants of this algorithm uses bidirectional insertion or binary search insertion.
+
 
 ## Maze Generation <a name="maze_generation"></a>
 Maze generation algorithms use automated methods to create mazes.
 
 ### objects.py
-Creating data structures via cell and grid classes
+Creating data structures via cell and grid classes to serve as the foundation of the maze.
+
+### binaryTrees.py
+For each cell in the grid, the algorithm destroys either the top or the right wall, using an equiprobable random selection. If the wall selected cannot be destroyed (borders of the maze), it destroys the other wall. If both walls cannot be destroyed (borders of the maze), the algorithm does nothing to the cell.
+
 
 ## Floorplans <a name="floorplans"></a>
 In electronic design automation, a floorplan of an integrated circuit is a schematics representation of tentative placement of its major functional blocks. Here, I look into mathematical models to generate the optimal floorplan.
