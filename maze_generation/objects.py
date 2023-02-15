@@ -15,13 +15,13 @@ class Cell:
         cell.links.pop(self, None)
 
     def getLinks(self):
-        return self.links.keys
+        return self.links.keys()
 
     def isLinked(self, cell):
         return self.links.get(cell)
     
     def getNeighbors(self):
-        return self.neighbors.values
+        return [v for v in self.neighbors.values() if v is not None]
 
 
 class Grid:
@@ -71,7 +71,7 @@ class Grid:
             return self.grid[row][col]
     
     def getRandom(self):
-        return self[randint(0, self.rows)][randint(0, self.cols)]
+        return self.grid[randint(0, self.rows - 1)][randint(0, self.cols - 1)]
 
     def getSize(self):
         return self.rows*self.cols

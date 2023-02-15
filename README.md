@@ -27,12 +27,10 @@ Creating data structures via cell and grid classes to serve as the foundation of
 For each cell in the grid, the binary tree's algorithm destroys either the top or the right wall, using an equiprobable random selection.
 
 ### sidewinder.py
-Processes each cell by determining if its eastern walls is at the border, then either destroying the right wall if not using an equiprobable random choice. If the wall is not destroyed, then any cell preceding the current one within that row will destroy its northern wall.
+The sidewinder algorithm processes each cell by determining if its eastern walls is at the border, then either destroying the right wall if not using an equiprobable random choice. If the wall is not destroyed, then any cell preceding the current one within that row will destroy its northern wall.
 
-Mark the current cell.
- If the right wall is not a border, randomly decide if it is destroyed or not, using an equiprobable random choice.
- If the wall is destroyed, step one cell right, otherwise destroy the top wall of a random cell among marked ones, and then
-unmark all cells and step one cell right.
+### aldous_broder.py
+A random-walk based algorithm that breaks down walls between unvisited cells until all the cells in the grid are visited.
 
 ## Floorplans <a name="floorplans"></a>
 In electronic design automation, a floorplan of an integrated circuit is a schematics representation of tentative placement of its major functional blocks. Here, I look into mathematical models to generate the optimal floorplan.

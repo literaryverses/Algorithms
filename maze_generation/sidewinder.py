@@ -17,7 +17,6 @@ def sidewinder(grid):
             if cell.neighbors.get('north'):
                 at_northern_boundary = False
 
-                
             should_close_out = at_eastern_boundary or (not at_northern_boundary and randint(0, 1) == 0)
 
             if should_close_out:
