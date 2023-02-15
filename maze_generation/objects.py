@@ -20,9 +20,6 @@ class Cell:
     def isLinked(self, cell):
         return self.links.get(cell)
     
-    def getNeighbor(self, direction):
-        return self.neighbors[direction]
-
     def getNeighbors(self):
         return self.neighbors.values
 
@@ -34,7 +31,7 @@ class Grid:
         self.grid = [[0 for c in range(columns)] for r in range(rows)]
         self.prepareGrid()
 
-    def __str__(self):
+    def __str__(self): # only works for quadrilateral mazes
         top_boundary = f'+' + '---+' * self.cols + '\n'
         for row in self.each_row():
             top = "|"
@@ -42,11 +39,11 @@ class Grid:
             for cell in row:
                 body = south_boundary = '   ' # three spaces
                 east_boundary = ' '
-                if not cell.isLinked(cell.getNeighbor('east')):
+                if not cell.isLinked(cell.neighbors['east']):
                     east_boundary = '|'
                 top += (body + east_boundary)
 
-                if not cell.isLinked(cell.getNeighbor('south')):
+                if not cell.isLinked(cell.neighbors['south']):
                     south_boundary = '---'
                 corner = '+'
                 bottom += (south_boundary + corner)
