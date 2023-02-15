@@ -1,31 +1,29 @@
-from random import randint
+from random import randint, sample
 
-class BinaryTree: # Binary Tree Algorithm
-    def __init__(self, grid, skew):
-        skewes = {
-            'NW': ('north', 'west'),
-            'NE': ('north', 'east'),
-            'SW': ('south', 'west'),
-            'SE': ('south', 'east'),}
-        for cell in grid.each_cell():
-            neighbors = []
-            neighbors.append(cell.neighbors.get(skewes.get(skew)[0]))
-            neighbors.append(cell.neighbors.get(skewes.get(skew)[1]))
-            neighbors = [i for i in neighbors if i is not None]
+def binaryTree(grid, skew): # Binary Tree Algorithm
+    skews = {
+        'NW': ('north', 'west'),
+        'NE': ('north', 'east'),
+        'SW': ('south', 'west'),
+        'SE': ('south', 'east'),}
+        
+    if (skew:=skew.upper()) not in skews:
+        skew = sample(skews.keys(), 1)[0]
 
-            if len(neighbors) == 2:
-                index = randint(0, 1)
-            elif len(neighbors) == 1:
-                index = 0
-            else: # neighbors = 0
-                continue
+    for cell in grid.each_cell():
+        neighbors = []
+        neighbors.append(cell.neighbors.get(skews.get(skew)[0]))
+        neighbors.append(cell.neighbors.get(skews.get(skew)[1]))
+        neighbors = [i for i in neighbors if i is not None]
 
-            neighbor = neighbors[index]
-            cell.link(neighbor)        
+        if len(neighbors) == 2:
+            index = randint(0, 1)
+        elif len(neighbors) == 1:
+            index = 0
+        else: # neighbors = 0
+            continue
 
-def generateMaze(grid, skew):
-    skewes = ('NE', 'NW', 'SW', 'SE')
-    if skew.upper() not in skewes:
-        skew = skewes[randint(0, 3)]
-    BinaryTree(grid, skew.upper())
+        neighbor = neighbors[index]
+        cell.link(neighbor)
+    
     return grid
