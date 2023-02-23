@@ -24,13 +24,17 @@ Maze generation algorithms use automated methods to create mazes.
 Creating data structures via cell and grid classes to serve as the foundation of the maze.
 
 ### binaryTrees.py
-For each cell in the grid, the binary tree's algorithm destroys either the top or the right wall, using an equiprobable random selection.
+For each cell in the grid, the binary tree's algorithm destroys either a longitudinal or latitudinal wall, using an equiprobable random selection.
 
 ### sidewinder.py
 The sidewinder algorithm processes each cell by determining if its eastern walls is at the border, then either destroying the right wall if not using an equiprobable random choice. If the wall is not destroyed, then any cell preceding the current one within that row will destroy its northern wall.
 
 ### aldous_broder.py
 A random-walk based algorithm that breaks down walls between unvisited cells until all the cells in the grid are visited.
+
+### wilsons.py
+A random-walk based algorithm that draws multiple paths from unvisited cells to a visited one until there are no more unvisited cells.
+
 
 ## Floorplans <a name="floorplans"></a>
 In electronic design automation, a floorplan of an integrated circuit is a schematics representation of tentative placement of its major functional blocks. Here, I look into mathematical models to generate the optimal floorplan.

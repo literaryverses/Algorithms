@@ -1,6 +1,6 @@
 from random import sample
 
-def AldousBroder(grid):
+def aldousBroder(grid):
 
     cell = grid.getRandom()
     unvisited = grid.getSize() - 1
@@ -14,6 +14,3 @@ def AldousBroder(grid):
         cell = neighbor
 
     return grid
-
-import objects
-AldousBroder(objects.Grid(5,5))

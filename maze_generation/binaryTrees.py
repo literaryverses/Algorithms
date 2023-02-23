@@ -1,13 +1,13 @@
 from random import randint, sample
 
-def binaryTree(grid, skew): # Binary Tree Algorithm
+def binaryTree(grid, skew):
     skews = {
         'NW': ('north', 'west'),
         'NE': ('north', 'east'),
         'SW': ('south', 'west'),
         'SE': ('south', 'east'),}
         
-    if (skew:=skew.upper()) not in skews:
+    if (skew:=skew.upper()) not in skews: # randomized skew if input skew is incorrect
         skew = sample(skews.keys(), 1)[0]
 
     for cell in grid.each_cell():
@@ -20,7 +20,7 @@ def binaryTree(grid, skew): # Binary Tree Algorithm
             index = randint(0, 1)
         elif len(neighbors) == 1:
             index = 0
-        else: # neighbors = 0
+        else: # len(neighbors) = 0
             continue
 
         neighbor = neighbors[index]

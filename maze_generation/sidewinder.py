@@ -1,10 +1,7 @@
 from random import randint
 
 def sidewinder(grid):
-
-    def getSample(list):
-        return list[randint(0, len(list)-1)]
-
+    
     for row in grid.each_row():
         run = []
         for cell in row:
@@ -20,7 +17,7 @@ def sidewinder(grid):
             should_close_out = at_eastern_boundary or (not at_northern_boundary and randint(0, 1) == 0)
 
             if should_close_out:
-                member = getSample(run)
+                member = run[randint(0, len(run)-1)]
                 northerner = member.neighbors.get('north')
                 if northerner:
                     member.link(northerner)
