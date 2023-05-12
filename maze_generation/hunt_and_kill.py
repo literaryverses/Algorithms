@@ -7,7 +7,6 @@ def hunt_and_kill(grid):
     current = grid.getRandom()
 
     while current:
-        print(grid) #proofreading
         neighbors = current.getNeighbors()
 
         unvisited_neighbors = [n for n in neighbors 
