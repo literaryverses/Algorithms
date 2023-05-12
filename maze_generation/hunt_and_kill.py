@@ -30,8 +30,3 @@ def hunt_and_kill(grid):
                     neighbor = sample(visited_neighbors,1)[0]
                     current.link(neighbor)
                     break
-
-from board import Grid
-grid = Grid(4,4)
-hunt_and_kill(grid)
-print("DONE")
