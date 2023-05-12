@@ -1,3 +1,5 @@
+# Performs sidewinder algorithm
+
 from random import randint
 
 def sidewinder(grid):

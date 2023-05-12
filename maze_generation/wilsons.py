@@ -1,3 +1,5 @@
+# Perform Wilson's algorithm
+
 from random import shuffle, sample
 
 def wilsons(grid):

@@ -1,3 +1,5 @@
+# Performs the Aldous-Broder algorithm
+
 from random import sample
 
 def aldousBroder(grid):

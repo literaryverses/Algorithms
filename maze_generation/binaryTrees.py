@@ -1,3 +1,5 @@
+# Performs the binary tree algorithm
+
 from random import randint, sample
 
 def binaryTree(grid, skew):
