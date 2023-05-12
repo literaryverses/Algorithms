@@ -30,3 +30,5 @@ def hunt_and_kill(grid):
                     neighbor = sample(visited_neighbors,1)[0]
                     current.link(neighbor)
                     break
+
+    return grid

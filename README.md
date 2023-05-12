@@ -23,14 +23,20 @@ Maze generation algorithms use automated methods to create mazes.
 ### objects.py
 Creating data structures via cell and grid classes to serve as the foundation of the maze.
 
+### aldous_broder.py
+A random-walk based algorithm that breaks down walls between unvisited cells until all the cells in the grid are visited.
+
 ### binaryTrees.py
 For each cell in the grid, the binary tree's algorithm destroys either a longitudinal or latitudinal wall, using an equiprobable random selection.
 
+### hunt_and_kill.py
+A random-walk based algorithm similar to Aldous-Broder except it only allows steps into unvisited cells.
+
+### recursive_backtracker.py
+A random-walk based algorithm that recursively backtracks from dead ends.
+
 ### sidewinder.py
 The sidewinder algorithm processes each cell by determining if its eastern walls is at the border, then either destroying the right wall if not using an equiprobable random choice. If the wall is not destroyed, then any cell preceding the current one within that row will destroy its northern wall.
-
-### aldous_broder.py
-A random-walk based algorithm that breaks down walls between unvisited cells until all the cells in the grid are visited.
 
 ### wilsons.py
 A random-walk based algorithm that draws multiple paths from unvisited cells to a visited one until there are no more unvisited cells.
