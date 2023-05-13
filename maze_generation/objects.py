@@ -167,8 +167,14 @@ class Grid:
 
     def mask(self, row: int, col: int):
         cell = self.getCell(row, col)
-
+        cell.links[None] = True
+        for neighbor in cell.getNeighbors():
+            if neighbor.isLinked(None):
+                cell.link(neighbor)
 
 from recursive_backtracker import recursive_backtracker
 grid = Grid(5,5,4)
+grid.mask(0,0)
+grid.mask(0,1)
+grid.mask(1,1)
 print(recursive_backtracker(grid))
