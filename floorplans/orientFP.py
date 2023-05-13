@@ -94,7 +94,7 @@ pe = normalized Polish Expession representing floorplan
 dimStr = string of dimensions in (height, width) format
 eq = non-decreasing function ψ using h and w as parameters
 '''
-def orientFP(pe, dimStr, eq, print_to_console):
+def orientFP(pe: str, dimStr: str, eq: str, print_to_console: bool):
     pe = pe.split()
     rotated_dimensions = getRotateDims(getDimensions(dimStr))
     rects = bindToPE(pe, rotated_dimensions)

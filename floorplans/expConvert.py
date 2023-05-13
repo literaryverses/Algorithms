@@ -8,14 +8,10 @@ mathOP = {'(': 1, ')': 1, '^': 2, '**': 2, '/': 3,'//': 3, '%': 3, '*': 3,
 boolOP = {'(': 1, ')': 1, '!': 2, '~': 2, '&': 3, '|': 4}
 separator = {','}
 
-def isOperator(op, isFpOp): # checks if op is operator
-    if isFpOp:
-        return isRoot(op)
+def isOperator(op): # checks if op is operator
     return op in mathOP or op in boolOP
 
-def isPreceding(op1, op2, isFpOp): # checks if op2 precedes op1
-    if isFpOp:
-        return True
+def isPreceding(op1, op2): # checks if op2 precedes op1
     if op1 in mathOP and op2 in mathOP:
         if mathOP[op1] >= mathOP[op2]:
             return True
@@ -26,7 +22,7 @@ def isPreceding(op1, op2, isFpOp): # checks if op2 precedes op1
         return False
     raise TypeError('Operators do not match')
 
-def infixFormat(infix): # converts any infix input into a list
+def infixFormat(infix: str): # converts any infix input into a list
     infix = list(filter(lambda x: not x.isspace(), list(infix)))
     fixed = []
     i = j = 0
@@ -42,15 +38,15 @@ def infixFormat(infix): # converts any infix input into a list
             i = j
     return fixed
 
-def peEval(pe, isFpOp): # simple algo that converts PE to infix notation
+def peEval(pe): # simple algo that converts PE to infix notation
     for e in pe.split():
-        if isOperator(e, isFpOp):
+        if isOperator(e):
             stack.append(f'({stack.pop(-2)} {e} {stack.pop()})')
         else:
             stack.append(e)
     return stack.pop()[1:-1] # remove outer parentheses
 
-def rpnAlgo(infix, isFpOp): # Reverse Polish Notation algo: infix -> postfix
+def rpnAlgo(infix): # Reverse Polish Notation algo: infix -> postfix
     pe = ''
     infix = infixFormat(infix)
     stack.append('(')
@@ -62,8 +58,8 @@ def rpnAlgo(infix, isFpOp): # Reverse Polish Notation algo: infix -> postfix
             while(stack[-1:][0] != '('):
                 pe += f' {stack.pop()}'
             stack.pop() # remove '('
-        elif isOperator(e, isFpOp): # operator
-            while(isPreceding(e, op := stack[-1:][0], isFpOp) 
+        elif isOperator(e): # operator
+            while(isPreceding(e, op := stack[-1:][0]) 
             and op != '('):
                 pe += f' {stack.pop()}'
             stack.append(e)
@@ -73,7 +69,7 @@ def rpnAlgo(infix, isFpOp): # Reverse Polish Notation algo: infix -> postfix
 
 # Dijkstra's Shunting-Yard algo: infix -> postfix
 # only one to deal with separators
-def syAlgo(infix, isFpOp):
+def syAlgo(infix):
     queue = []
     infix = infixFormat(infix)
     for e in infix:
@@ -83,8 +79,8 @@ def syAlgo(infix, isFpOp):
             while(stack[-1:][0] != '('):
                 queue.append(stack.pop())
             stack.pop() # remove '('
-        elif isOperator(e, isFpOp): # operator
-            while(stack and isPreceding(e, op := stack[-1:][0], isFpOp)
+        elif isOperator(e): # operator
+            while(stack and isPreceding(e, op := stack[-1:][0])
             and op != '('):
                 queue.append(stack.pop())
             stack.append(e)
@@ -97,7 +93,7 @@ def syAlgo(infix, isFpOp):
         queue.append(stack.pop())
     return ' '.join(queue)
 
-def pkrAlgo(infix, isFpOp): # PKR algo: infix -> postfix
+def pkrAlgo(infix): # PKR algo: infix -> postfix
     queue = []
     infix = infixFormat(infix)
     for e in infix:
@@ -109,9 +105,9 @@ def pkrAlgo(infix, isFpOp): # PKR algo: infix -> postfix
             while(stack[-1:][0] != '('):
                 queue.append(stack.pop())
             stack.pop() # remove '('
-        elif isOperator(e, isFpOp):
-            if len(stack) > 1 and isOperator(op := stack[-2:-1][0], isFpOp):
-                if isPreceding(e, op, isFpOp) and op != '(':
+        elif isOperator(e):
+            if len(stack) > 1 and isOperator(op := stack[-2:-1][0]):
+                if isPreceding(e, op) and op != '(':
                     queue.append(stack.pop(-2))
         else: #operand
             queue.append(stack.pop())

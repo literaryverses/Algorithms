@@ -88,10 +88,10 @@ def rectMake(pe):
     fitRectangle(bTree[0], rects)
     return rects
 
-def polishExp(n): # generates PE from given # of slices
+def polishExp(n: int): # generates PE from given # of slices
     return reGenerate(0, n) # starts off with 0 operands
 
-def createFP(total, print_to_console): # returns random PE and FP given # of slices
+def createFP(total, print_to_console: bool): # returns random PE and FP given # of slices
     pe = normalize(polishExp(int(total)))
     rects = rectMake(pe)
 

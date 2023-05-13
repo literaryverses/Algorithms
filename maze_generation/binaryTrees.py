@@ -2,7 +2,7 @@
 
 from random import randint, sample
 
-def binaryTree(grid, skew):
+def binaryTree(grid, skew: str):
     skews = {
         'NW': ('north', 'west'),
         'NE': ('north', 'east'),

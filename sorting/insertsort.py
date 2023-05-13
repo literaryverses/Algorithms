@@ -52,7 +52,7 @@ def twoway_insertsort(array): # bidirectional insert sorting
             array.insert(i, k)
     return array
     
-def shellsort(array, seqType): # Shell's algorithm
+def shellsort(array, seqType: str): # Shell's algorithm
     gaps = [x:=1]
     n = len(array)
     
@@ -70,6 +70,8 @@ def shellsort(array, seqType): # Shell's algorithm
     elif seqType.lower() == "sedgwick": # 4^k + 3*2^(k-1) + 1
         while (gaps[0] < n):
             gaps.insert(0, sedgwick_fx(x:=x+1))
+    else:
+        raise Exception('Not an available function')
     gaps.pop(0) # remove since gap[0] > n
 
     for gap in gaps:
