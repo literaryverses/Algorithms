@@ -3,7 +3,8 @@
 from random import shuffle, sample
 
 def wilsons(grid):
-    unvisited = list(grid.each_cell())
+    isNotMasked = lambda cell: not cell.isLinked(None)
+    unvisited = list(filter(isNotMasked, grid.each_cell()))
     shuffle(unvisited)
 
     unvisited.pop() # set first goal cell
@@ -13,7 +14,7 @@ def wilsons(grid):
         cell = path[0]
 
         while cell in unvisited: # create path
-            cell = sample(cell.getNeighbors(), 1)[0]
+            cell = sample(list(filter(isNotMasked, cell.getNeighbors())), 1)[0]
             
             if cell in path: # remove loops
                 path = path[:path.index(cell)+1]

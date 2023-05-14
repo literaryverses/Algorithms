@@ -86,6 +86,15 @@ class Grid:
 
     def _configureCells(self, cell):
         row, col = cell.coord
+        if self.shape == 3:
+            if cell.coord[1] % 2:
+                cell.neighbors['north'] = self.getCell(row-1, col)
+                cell.neighbors['southeast'] = self.getCell(row+1, col)
+                cell.neighbors['southwest'] = self.getCell(row, col-1)
+            else:
+                cell.neighbors['south'] = self.getCell(row-1, col)
+                cell.neighbors['northeast'] = self.getCell(row+1, col)
+                cell.neighbors['northwest'] = self.getCell(row, col-1)
         if self.shape == 4:
             cell.neighbors['north'] = self.getCell(row-1, col)
             cell.neighbors['south'] = self.getCell(row+1, col)
@@ -144,7 +153,10 @@ class Grid:
             return self.grid[row][col]
     
     def getRandom(self):
-        return self.grid[randint(0, self.rows - 1)][randint(0, self.cols - 1)]
+        while (True):
+            cell = self.grid[randint(0, self.rows - 1)][randint(0, self.cols - 1)]
+            if not cell.isLinked(None):
+                return cell
 
     def getSize(self):
         return self.rows*self.cols
@@ -165,16 +177,32 @@ class Grid:
     def count_dead_ends(self): # total dead ends in a grid
         return [cell for cell in self.each_cell() if cell.getLinks() == 1]
 
-    def mask(self, row: int, col: int):
+    def mask(self, row: int, col: int): # do not use masking with binary trees, sidewinder
         cell = self.getCell(row, col)
         cell.links[None] = True
         for neighbor in cell.getNeighbors():
             if neighbor.isLinked(None):
                 cell.link(neighbor)
 
+from aldous_broder import aldousBroder
 from recursive_backtracker import recursive_backtracker
-grid = Grid(5,5,4)
-grid.mask(0,0)
-grid.mask(0,1)
-grid.mask(1,1)
-print(recursive_backtracker(grid))
+from wilsons import wilsons
+from hunt_and_kill import hunt_and_kill
+from binaryTrees import binaryTree
+grid = Grid(7,9,4)
+grid.mask(2,2)
+grid.mask(3,2)
+grid.mask(4,2)
+grid.mask(2,4)
+grid.mask(3,4)
+grid.mask(4,4)
+grid.mask(3,3)
+grid.mask(4,6)
+grid.mask(3,6)
+grid.mask(2,6)
+#print(binaryTree(grid,'NE'))
+print(wilsons(grid))
+#print(hunt_and_kill(grid))
+#print(binaryTree(grid, 'NE'))
+#print(aldousBroder(grid))
+#print(recursive_backtracker(grid))

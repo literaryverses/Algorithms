@@ -102,7 +102,7 @@ def alphabet(phrase: str):
                 coord_letters.append((_y, x+4))
                 coord_letters.append((_y-1, x+3))
             coord_letters.append((y+2, x+1))
-            #coordinates.append((y, x+3)) # Version 1
+            coord_letters.append((y, x+3))
         if letter == 'L':
             for _x in range(x, x+5):
                 coord_letters.append((y+4, _x))
@@ -119,8 +119,8 @@ def alphabet(phrase: str):
             for _y in range(y, y+5):
                 coord_letters.append((_y, x))
                 coord_letters.append((_y, x+4))
-            for _y in range(y, y+2):
-            #for _y in range(y+1, y+3):
+            #for _y in range(y, y+2):
+            for _y in range(y+1, y+3):
                 coord_letters.append((_y, x+1))
                 coord_letters.append((_y+1, x+2))
                 coord_letters.append((_y+2, x+3))
@@ -157,9 +157,6 @@ def alphabet(phrase: str):
                 coord_letters.append((y, _x))
                 coord_letters.append((y+2, _x))
             coord_letters.append((y+1, x+4))
-            #for _x in range(x+2, x+4):
-            #    coordinates.append((y+3, _x))
-            #    coordinates.append((y+4, _x+1))
             for _x in range(x+2, x+5):
                 coord_letters.append((y+4, _x))
             coord_letters.append((y+3, x+2))
@@ -270,5 +267,5 @@ def recursive_backtracker(grid, coord):
             stack.pop()
     return grid
 
-words = 'hello world!'
+words = 'hello world!' # write anything to print on maze
 print(mask_word(words))
