@@ -29,51 +29,28 @@ class Grid: # 2D rectangular grid
         self.rows = rows
         self.cols = columns
         self.grid = [[0 for c in range(columns)] for r in range(rows)]
-        self.shape = shape
-        self._prepareGrid()
+        self.__prepareGrid(shape)
 
     def __str__(self):
         final = ''
         for row in self.each_row():
             top = middle = bottom = ''
             for cell in row:
-                top, middle, bottom = self._draw(top, middle, bottom, cell)
+                top, middle, bottom = self._drawCell(top, middle, bottom, cell)
             final += f'{top}\n{middle}\n{bottom}'
         final += self._cornerize(cell.coord[0]+1, cell.coord[1]+1) # most bottom right corner
         return final
 
-    def _draw(self, top, middle, bottom, cell):
-        wall = ' '; body = '   '
-        top += self._cornerize(cell.coord[0], cell.coord[1])
-        if not cell.isLinked(cell.neighbors['north']): # draw top wall
-            top += '---'
-        else: 
-            top += body
-        if not cell.isLinked(cell.neighbors['west']): # draw left wall
-            wall = '|'
-        if cell.coord[0] == self.rows-1: # if last row
-            bottom += self._cornerize(cell.coord[0]+1, cell.coord[1])
-            if not cell.isLinked(cell.neighbors['south']): # draw bottom wall
-                bottom += '---'
-            else: 
-                bottom += body
-        if cell.coord[1] == self.cols-1: # if last column
-            top += self._cornerize(cell.coord[0], cell.coord[1]+1)
-            if not cell.isLinked(cell.neighbors['east']): # draw right wall
-                body += '|'
-        middle += f'{wall}{body}'
-        return top, middle, bottom
-
-    def _prepareGrid(self):
+    def __prepareGrid(self, shape):
         for row in range(self.rows):
             for col in range(self.cols):
                 self.grid[row][col] = Cell(row, col)
         for cell in self.each_cell():
-            self._configureCells(cell)
+            self.__configureCells(cell, shape)
 
-    def _configureCells(self, cell):
+    def __configureCells(self, cell, shape):
         row, col = cell.coord
-        if self.shape == 3:
+        if shape == 3:
             if sum(cell.coord) % 2:
                 cell.neighbors['north'] = self.getCell(row-1, col)
                 cell.neighbors['southeast'] = self.getCell(row, col+1)
@@ -82,12 +59,12 @@ class Grid: # 2D rectangular grid
                 cell.neighbors['south'] = self.getCell(row+1, col)
                 cell.neighbors['northeast'] = self.getCell(row, col+1)
                 cell.neighbors['northwest'] = self.getCell(row, col-1)
-        elif self.shape == 4:
+        elif shape == 4:
             cell.neighbors['north'] = self.getCell(row-1, col)
             cell.neighbors['south'] = self.getCell(row+1, col)
             cell.neighbors['west'] = self.getCell(row, col-1)
             cell.neighbors['east'] = self.getCell(row, col+1)
-        elif self.shape == 6:
+        elif shape == 6:
             north_diagonal = (lambda r, c: r-1 if c%2 else r)(row, col)
             south_diagonal = (lambda r, c: r if c%2 else r+1)(row, col)
             cell.neighbors['north'] = self.getCell(row-1, col)
@@ -97,11 +74,29 @@ class Grid: # 2D rectangular grid
             cell.neighbors['northeast'] = self.getCell(north_diagonal, col+1)
             cell.neighbors['southeast'] = self.getCell(south_diagonal, col+1)
 
-    def _cornerize(self, y: int, x: int) -> str: # given two diagonal cells
-        symbol = 'x'
-        if self.shape == 4:
-            symbol = '+'
+    def _drawCell(self, top, middle, bottom, cell):
+        top += self._cornerize(cell.coord[0], cell.coord[1])
+        top += self._drawBorder(cell, 'north') # draw top wall
+        middle += self._drawBorder(cell, 'west') # draw left wall
+        middle += '   ' # draw cellular space
+        if cell.coord[0] == self.rows-1: # if last row
+            bottom += self._cornerize(cell.coord[0]+1, cell.coord[1])
+            bottom += self._drawBorder(cell, 'south') # draw bottom wall
+        if cell.coord[1] == self.cols-1: # if last column
+            top += self._cornerize(cell.coord[0], cell.coord[1]+1)
+            middle += self._drawBorder(cell, 'east') # draw right wall
+        return top, middle, bottom
+    
+    def _drawBorder(self, cell: Cell, direction: str):
+        borders = {'north': '---', 'south': '---', 'west' : '|', 'east' : '|'}
+        if (direction in cell.neighbors.keys() and not cell.isLinked(cell.neighbors[direction])):
+            return borders[direction]
+        if len(direction) == 5: # north / south
+            return '   '
+        else:
+            return ' '
 
+    def _cornerize(self, y: int, x: int) -> str: # given two diagonal cells
         adjacents = [True] * 4
         if y == self.rows:
             adjacents[2] = adjacents[3] = False
@@ -183,12 +178,12 @@ class TriGrid(Grid): # 2D triangular grid
         for row in self.each_row():
             top = '  '; bottom = middle = ''
             for cell in row:
-                top, middle, bottom = self._draw(top, middle, bottom, cell)
+                top, middle, bottom = self._drawCell(top, middle, bottom, cell)
             final += f'{top}\n{middle}\n'
         final += f'{bottom}x'
         return final
 
-    def _draw(self, top, middle, bottom, cell):
+    def _drawCell(self, top, middle, bottom, cell):
         side = ' /'
         if sum(cell.coord) % 2:
             side = ' \\'
@@ -232,9 +227,6 @@ class HexGrid(Grid): # 2D hexagonal grid
 
 
 from aldous_broder import aldousBroder
-grid = TriGrid(4,3)
-#print(grid)
-#print(aldousBroder(grid))
-
-if ' \\':
-    print('fuck')
+grid = Grid(4,3)
+print(grid)
+print(aldousBroder(grid))
