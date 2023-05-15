@@ -24,58 +24,45 @@ class Cell:
         return [v for v in self.neighbors.values() if v is not None]
 
 
-class Grid:
-    def __init__(self, rows: int, columns: int, sides: int):
+class Grid: # 2D rectangular grid
+    def __init__(self, rows: int, columns: int, shape = 4):
         self.rows = rows
         self.cols = columns
-        self.shape = sides # three options available: 3, 4, 6
         self.grid = [[0 for c in range(columns)] for r in range(rows)]
+        self.shape = shape
         self._prepareGrid()
 
     def __str__(self):
-        if self.shape == 4:
-            final = ''
-            for row in self.each_row():
-                top = middle = bottom = ''
-                for cell in row:
-                    wall = ' '
-                    body = '   ' # 3 spaces
-                    top += self._cornerize(cell.coord[0], cell.coord[1])
-                    if not cell.isLinked(cell.neighbors['north']):
-                        top += '---'
-                    else: 
-                        top += body
-                    if not cell.isLinked(cell.neighbors['west']):
-                        wall = '|'
-                    if cell.coord[0] == self.rows-1: # if last row
-                        bottom += self._cornerize(cell.coord[0]+1, cell.coord[1])
-                        if not cell.isLinked(cell.neighbors['south']):
-                            bottom += '---'
-                        else: 
-                            bottom += body
-                    if cell.coord[1] == self.cols-1: # if last column
-                        top += self._cornerize(cell.coord[0], cell.coord[1]+1)
-                        if not cell.isLinked(cell.neighbors['east']):
-                            body += '|'
-                    middle += f'{wall}{body}'
-                final += f'{top}\n{middle}\n{bottom}'
-            final += self._cornerize(cell.coord[0]+1, cell.coord[1]+1) # most bottom right corner
-            return final
-        #elif self.shape == 6:
-            #for row in self.each_row():
-            '''
-             +---+       +---+
-            /     \\    /     \\
-           +       +---+       +
-            \     /     \\    /
-             +---+       +---+
-            /     \\    /     \\
-           +       +---+
+        final = ''
+        for row in self.each_row():
+            top = middle = bottom = ''
+            for cell in row:
+                top, middle, bottom = self._draw(top, middle, bottom, cell)
+            final += f'{top}\n{middle}\n{bottom}'
+        final += self._cornerize(cell.coord[0]+1, cell.coord[1]+1) # most bottom right corner
+        return final
 
-           +---+---+
-            \ / \ /
-            +---+
-            '''
+    def _draw(self, top, middle, bottom, cell):
+        wall = ' '; body = '   '
+        top += self._cornerize(cell.coord[0], cell.coord[1])
+        if not cell.isLinked(cell.neighbors['north']): # draw top wall
+            top += '---'
+        else: 
+            top += body
+        if not cell.isLinked(cell.neighbors['west']): # draw left wall
+            wall = '|'
+        if cell.coord[0] == self.rows-1: # if last row
+            bottom += self._cornerize(cell.coord[0]+1, cell.coord[1])
+            if not cell.isLinked(cell.neighbors['south']): # draw bottom wall
+                bottom += '---'
+            else: 
+                bottom += body
+        if cell.coord[1] == self.cols-1: # if last column
+            top += self._cornerize(cell.coord[0], cell.coord[1]+1)
+            if not cell.isLinked(cell.neighbors['east']): # draw right wall
+                body += '|'
+        middle += f'{wall}{body}'
+        return top, middle, bottom
 
     def _prepareGrid(self):
         for row in range(self.rows):
@@ -87,15 +74,15 @@ class Grid:
     def _configureCells(self, cell):
         row, col = cell.coord
         if self.shape == 3:
-            if cell.coord[1] % 2:
+            if sum(cell.coord) % 2:
                 cell.neighbors['north'] = self.getCell(row-1, col)
-                cell.neighbors['southeast'] = self.getCell(row+1, col)
+                cell.neighbors['southeast'] = self.getCell(row, col+1)
                 cell.neighbors['southwest'] = self.getCell(row, col-1)
             else:
-                cell.neighbors['south'] = self.getCell(row-1, col)
-                cell.neighbors['northeast'] = self.getCell(row+1, col)
+                cell.neighbors['south'] = self.getCell(row+1, col)
+                cell.neighbors['northeast'] = self.getCell(row, col+1)
                 cell.neighbors['northwest'] = self.getCell(row, col-1)
-        if self.shape == 4:
+        elif self.shape == 4:
             cell.neighbors['north'] = self.getCell(row-1, col)
             cell.neighbors['south'] = self.getCell(row+1, col)
             cell.neighbors['west'] = self.getCell(row, col-1)
@@ -109,38 +96,40 @@ class Grid:
             cell.neighbors['southwest'] = self.getCell(south_diagonal, col-1)
             cell.neighbors['northeast'] = self.getCell(north_diagonal, col+1)
             cell.neighbors['southeast'] = self.getCell(south_diagonal, col+1)
-        else:
-            raise Exception(f'{self.shape} is not available; try 3, 4, or 6')
 
-    def _cornerize(self, q4_y: int, q4_x: int) -> str: # given two diagonal cells
-        quadrants = [True, True, True, True] # QI, QII, QIII, QIV
-        if q4_y == self.rows:
-            quadrants[2] = quadrants[3] = False
-        elif q4_y - 1 < 0:
-            quadrants[0] = quadrants[1] = False
-        if q4_x == self.cols:
-            quadrants[0] = quadrants[3] = False
-        elif q4_x - 1 <0:
-            quadrants[1] = quadrants[2] = False
+    def _cornerize(self, y: int, x: int) -> str: # given two diagonal cells
+        symbol = 'x'
+        if self.shape == 4:
+            symbol = '+'
 
-        for order, make_cell in enumerate(quadrants):
+        adjacents = [True] * 4
+        if y == self.rows:
+            adjacents[2] = adjacents[3] = False
+        elif y - 1 < 0:
+            adjacents[0] = adjacents[1] = False
+        if x == self.cols:
+            adjacents[0] = adjacents[3] = False
+        elif x - 1 <0:
+            adjacents[1] = adjacents[2] = False
+
+        for order, make_cell in enumerate(adjacents):
             if make_cell and order == 0: # Quadrant 1
-                topRight = self.getCell(q4_y - 1, q4_x)
+                topRight = self.getCell(y - 1, x)
                 if not topRight.isLinked(topRight.neighbors['south']) or \
                 not topRight.isLinked(topRight.neighbors['west']):
                     return '+'
             if make_cell and order == 1: # Quadrant II
-                topLeft = self.getCell(q4_y - 1, q4_x - 1)
+                topLeft = self.getCell(y - 1, x - 1)
                 if not topLeft.isLinked(topLeft.neighbors['south']) or \
                 not topLeft.isLinked(topLeft.neighbors['east']):
                     return '+'
             if make_cell and order == 2: # Quadrant III
-                bottomLeft = self.getCell(q4_y, q4_x - 1)
+                bottomLeft = self.getCell(y, x - 1)
                 if not bottomLeft.isLinked(bottomLeft.neighbors['north']) or \
                 not bottomLeft.isLinked(bottomLeft.neighbors['east']):
                     return '+'
             if make_cell and order == 3: # Quadrant IV
-                bottomRight = self.getCell(q4_y, q4_x)
+                bottomRight = self.getCell(y, x)
                 if not bottomRight.isLinked(bottomRight.neighbors['north']) or \
                 not bottomRight.isLinked(bottomRight.neighbors['west']):
                     return '+'
@@ -184,25 +173,68 @@ class Grid:
             if neighbor.isLinked(None):
                 cell.link(neighbor)
 
+
+class TriGrid(Grid): # 2D triangular grid
+    def __init__(self, rows: int, columns: int):
+        super().__init__(rows, columns, shape = 3)
+
+    def __str__(self):
+        final = ''
+        for row in self.each_row():
+            top = '  '; bottom = middle = ''
+            for cell in row:
+                top, middle, bottom = self._draw(top, middle, bottom, cell)
+            final += f'{top}\n{middle}\n'
+        final += f'{bottom}x'
+        return final
+
+    def _draw(self, top, middle, bottom, cell):
+        side = ' /'
+        if sum(cell.coord) % 2:
+            side = ' \\'
+        if cell.coord[0] % 2 and cell.coord[1] == 0: # even rows, first column
+            top, bottom = bottom, top
+        if 'north' in cell.neighbors.keys(): # draw top
+            if cell.isLinked(cell.neighbors['north']):
+                top += '    '
+            else:
+                top += 'x---'
+        if ('northwest' in cell.neighbors.keys() and not cell.isLinked(cell.neighbors['northwest'])) \
+        or ('southwest' in cell.neighbors.keys() and not cell.isLinked(cell.neighbors['southwest'])):
+            middle += side
+        else: 
+            middle += '  '
+        if cell.coord[0] == self.rows-1 and 'south' in cell.neighbors.keys(): # draw bottom
+            if cell.isLinked(cell.neighbors.get('south')): # if last row and has south wall
+                bottom += '    '
+            else:
+                bottom += 'x---'
+        if cell.coord[1] == self.cols-1: # if last column
+            top += 'x'
+            if not cell.isLinked(cell.neighbors.get('northwest')) or \
+            not cell.isLinked(cell.neighbors.get('southwest')):
+                middle += side
+        return top, middle, bottom
+
+class HexGrid(Grid): # 2D hexagonal grid
+    def __init__(self, rows: int, columns: int):
+        super().__init__(rows, columns, shape = 6)
+        '''
+             x---x       x---x
+            /     \\    /     \\
+           x       x---x       x
+            \     /     \\    /
+             x---x       x---x
+            /     \\    /     \\
+           x       x---x
+
+'''
+
+
 from aldous_broder import aldousBroder
-from recursive_backtracker import recursive_backtracker
-from wilsons import wilsons
-from hunt_and_kill import hunt_and_kill
-from binaryTrees import binaryTree
-grid = Grid(7,9,4)
-grid.mask(2,2)
-grid.mask(3,2)
-grid.mask(4,2)
-grid.mask(2,4)
-grid.mask(3,4)
-grid.mask(4,4)
-grid.mask(3,3)
-grid.mask(4,6)
-grid.mask(3,6)
-grid.mask(2,6)
-#print(binaryTree(grid,'NE'))
-print(wilsons(grid))
-#print(hunt_and_kill(grid))
-#print(binaryTree(grid, 'NE'))
+grid = TriGrid(4,3)
+#print(grid)
 #print(aldousBroder(grid))
-#print(recursive_backtracker(grid))
+
+if ' \\':
+    print('fuck')
