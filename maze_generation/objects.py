@@ -105,29 +105,29 @@ class Grid: # 2D rectangular grid
             adjacents[0] = adjacents[1] = False
         if x == self.cols:
             adjacents[0] = adjacents[3] = False
-        elif x - 1 <0:
+        elif x - 1 < 0:
             adjacents[1] = adjacents[2] = False
 
         for order, make_cell in enumerate(adjacents):
             if make_cell and order == 0: # Quadrant 1
-                topRight = self.getCell(y - 1, x)
-                if not topRight.isLinked(topRight.neighbors['south']) or \
-                not topRight.isLinked(topRight.neighbors['west']):
+                upRight = self.getCell(y - 1, x)
+                if not upRight.isLinked(upRight.neighbors['south']) or \
+                not upRight.isLinked(upRight.neighbors['west']):
                     return '+'
             if make_cell and order == 1: # Quadrant II
-                topLeft = self.getCell(y - 1, x - 1)
-                if not topLeft.isLinked(topLeft.neighbors['south']) or \
-                not topLeft.isLinked(topLeft.neighbors['east']):
+                upLeft = self.getCell(y - 1, x - 1)
+                if not upLeft.isLinked(upLeft.neighbors['south']) or \
+                not upLeft.isLinked(upLeft.neighbors['east']):
                     return '+'
             if make_cell and order == 2: # Quadrant III
-                bottomLeft = self.getCell(y, x - 1)
-                if not bottomLeft.isLinked(bottomLeft.neighbors['north']) or \
-                not bottomLeft.isLinked(bottomLeft.neighbors['east']):
+                downLeft = self.getCell(y, x - 1)
+                if not downLeft.isLinked(downLeft.neighbors['north']) or \
+                not downLeft.isLinked(downLeft.neighbors['east']):
                     return '+'
             if make_cell and order == 3: # Quadrant IV
-                bottomRight = self.getCell(y, x)
-                if not bottomRight.isLinked(bottomRight.neighbors['north']) or \
-                not bottomRight.isLinked(bottomRight.neighbors['west']):
+                downRight = self.getCell(y, x)
+                if not downRight.isLinked(downRight.neighbors['north']) or \
+                not downRight.isLinked(downRight.neighbors['west']):
                     return '+'
         return ' '
 
@@ -175,7 +175,7 @@ class TriGrid(Grid): # 2D triangular grid
         super().__init__(rows, columns, shape = 3)
         self.borders = {'north': '---', 'south': '---', 'northwest': ' /', 'northeast': ' \\',
                         'southwest': ' \\', 'southeast': ' /', 'vdoor': '   ', 'hdoor': '  '}
-
+ 
     def __str__(self):
         final = ''
         for row in self.each_row():
@@ -183,61 +183,84 @@ class TriGrid(Grid): # 2D triangular grid
             for cell in row:
                 top, middle, bottom = self._drawCell(top, middle, bottom, cell)
             final += f'{top}\n{middle}\n'
-        final += f'{bottom}+'
+        final += bottom
         return final
 
     def _drawCell(self, top, middle, bottom, cell):
         if cell.coord[0] % 2 and cell.coord[1] == 0: # even rows, first column
             top, bottom = bottom, top
         if sum(cell.coord) % 2:
-            top += 'o' # left corners
+            #top += 'o'
+            top += self._cornerize(cell.coord[0], cell.coord[1] - 1)
             top += self._drawBorder(cell, 'north') # draw top wall
             middle += self._drawBorder(cell, 'southwest') # draw left wall
         else:
-            bottom += '0' # leftmost corners
             middle += self._drawBorder(cell, 'northwest') # draw left wall
             if cell.coord[0] == self.rows-1: # if last row
+                #bottom += '0' # leftmost corners
+                bottom += self._cornerize(cell.coord[0] + 1, cell.coord[1] - 1)          
                 bottom += self._drawBorder(cell, 'south')
         if cell.coord[1] == self.cols-1: # if last column
-            top += 'x'
+            #top += 'x'
             if sum(cell.coord) % 2: # draw right wall
+                top += self._cornerize(cell.coord[0], cell.coord[1] + 1)
                 middle += self._drawBorder(cell, 'southeast')
             else:
+                top += self._cornerize(cell.coord[0], cell.coord[1])
                 middle += self._drawBorder(cell, 'northeast')
+        if cell.coord[1] == self.cols-1 and cell.coord[0] == self.rows-1: # if last cell
+            #bottom += '+'
+            if sum(cell.coord) % 2: 
+                bottom += self._cornerize(cell.coord[0] + 1, cell.coord[1])
+            else:
+                bottom += self._cornerize(cell.coord[0] + 1, cell.coord[1] + 1)
         return top, middle, bottom
 
     def _cornerize(self, y: int, x: int) -> str: # given two diagonal cells
         adjacents = [True] * 6
         if y == self.rows:
-            adjacents[2] = adjacents[3] = False
+            adjacents[0] = adjacents[1] = adjacents[5] = False
         elif y - 1 < 0:
-            adjacents[0] = adjacents[1] = False
-        if x == self.cols:
+            adjacents[2] = adjacents[3] = adjacents[4] = False
+        if x == self.cols or x == -1:
             adjacents[0] = adjacents[3] = False
-        elif x - 1 <0:
+        if x + 1 >= self.cols:
             adjacents[1] = adjacents[2] = False
+        elif x <= 0:
+            adjacents[4] = adjacents[5] = False
 
         for order, make_cell in enumerate(adjacents):
-            if make_cell and order == 0: # Quadrant 1
-                topRight = self.getCell(y - 1, x)
-                if not topRight.isLinked(topRight.neighbors['south']) or \
-                not topRight.isLinked(topRight.neighbors['west']):
-                    return '+'
-            if make_cell and order == 1: # Quadrant II
-                topLeft = self.getCell(y - 1, x - 1)
-                if not topLeft.isLinked(topLeft.neighbors['south']) or \
-                not topLeft.isLinked(topLeft.neighbors['east']):
-                    return '+'
-            if make_cell and order == 2: # Quadrant III
-                bottomLeft = self.getCell(y, x - 1)
-                if not bottomLeft.isLinked(bottomLeft.neighbors['north']) or \
-                not bottomLeft.isLinked(bottomLeft.neighbors['east']):
-                    return '+'
-            if make_cell and order == 3: # Quadrant IV
-                bottomRight = self.getCell(y, x)
-                if not bottomRight.isLinked(bottomRight.neighbors['north']) or \
-                not bottomRight.isLinked(bottomRight.neighbors['west']):
-                    return '+'
+            if make_cell and order == 0:
+                downMid = self.getCell(y, x)
+                if not downMid.isLinked(downMid.neighbors['northwest']) or \
+                not downMid.isLinked(downMid.neighbors['northeast']):
+                    return 'x'
+            if make_cell and order == 1:
+                downRight = self.getCell(y, x + 1)
+                if not downRight.isLinked(downRight.neighbors['north']) or \
+                not downRight.isLinked(downRight.neighbors['southwest']):
+                    return 'x'
+            if make_cell and order == 2:
+                upRight = self.getCell(y - 1, x + 1)
+                if not upRight.isLinked(upRight.neighbors['south']) or \
+                not upRight.isLinked(upRight.neighbors['northeast']):
+                    return 'x'
+            if make_cell and order == 3:
+                upMid = self.getCell(y - 1, x)
+                if not upMid.isLinked(upMid.neighbors['southeast']) or \
+                not upMid.isLinked(upMid.neighbors['southwest']):
+                    return 'x'
+            if make_cell and order == 4:
+                upLeft = self.getCell(y - 1, x - 1)
+                if not upLeft.isLinked(upLeft.neighbors['northeast']) or \
+                not upLeft.isLinked(upLeft.neighbors['south']):
+                    return 'x'
+            if make_cell and order == 5:
+                downLeft = self.getCell(y, x - 1)
+                if not downLeft.isLinked(downLeft.neighbors['north']) or \
+                not downLeft.isLinked(downLeft.neighbors['southwest']):
+                    return 'x'
+
         return ' '
 
 class HexGrid(Grid): # 2D hexagonal grid
@@ -263,10 +286,6 @@ class HexGrid(Grid): # 2D hexagonal grid
 from recursive_backtracker import recursive_backtracker
 grid = TriGrid(4,4)
 print(grid)
-grid = TriGrid(5,5)
-print(grid)
-grid = TriGrid(5,4)
-print(grid)
-grid = TriGrid(4,5)
-print(grid)
-#print(recursive_backtracker(grid))
+grid.mask(3,3)
+grid.mask(1,1)
+print(recursive_backtracker(grid))
