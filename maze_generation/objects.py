@@ -29,6 +29,8 @@ class Grid: # 2D rectangular grid
         self.rows = rows
         self.cols = columns
         self.grid = [[0 for c in range(columns)] for r in range(rows)]
+        self.borders = {'north': '---', 'south': '---', 'west': '|', 'east': '|',
+                        'vdoor': '   ', 'hdoor': ' '}
         self.__prepareGrid(shape)
 
     def __str__(self):
@@ -88,13 +90,12 @@ class Grid: # 2D rectangular grid
         return top, middle, bottom
     
     def _drawBorder(self, cell: Cell, direction: str):
-        borders = {'north': '---', 'south': '---', 'west' : '|', 'east' : '|'}
         if (direction in cell.neighbors.keys() and not cell.isLinked(cell.neighbors[direction])):
-            return borders[direction]
+            return self.borders[direction]
         if len(direction) == 5: # north / south
-            return '   '
-        else:
-            return ' '
+            return self.borders['vdoor']
+        else: # horizontal / diagonal
+            return self.borders['hdoor']
 
     def _cornerize(self, y: int, x: int) -> str: # given two diagonal cells
         adjacents = [True] * 4
@@ -172,6 +173,8 @@ class Grid: # 2D rectangular grid
 class TriGrid(Grid): # 2D triangular grid
     def __init__(self, rows: int, columns: int):
         super().__init__(rows, columns, shape = 3)
+        self.borders = {'north': '---', 'south': '---', 'northwest': ' /', 'northeast': ' \\',
+                        'southwest': ' \\', 'southeast': ' /', 'vdoor': '   ', 'hdoor': '  '}
 
     def __str__(self):
         final = ''
@@ -180,53 +183,90 @@ class TriGrid(Grid): # 2D triangular grid
             for cell in row:
                 top, middle, bottom = self._drawCell(top, middle, bottom, cell)
             final += f'{top}\n{middle}\n'
-        final += f'{bottom}x'
+        final += f'{bottom}+'
         return final
 
     def _drawCell(self, top, middle, bottom, cell):
-        side = ' /'
-        if sum(cell.coord) % 2:
-            side = ' \\'
         if cell.coord[0] % 2 and cell.coord[1] == 0: # even rows, first column
             top, bottom = bottom, top
-        if 'north' in cell.neighbors.keys(): # draw top
-            if cell.isLinked(cell.neighbors['north']):
-                top += '    '
-            else:
-                top += 'x---'
-        if ('northwest' in cell.neighbors.keys() and not cell.isLinked(cell.neighbors['northwest'])) \
-        or ('southwest' in cell.neighbors.keys() and not cell.isLinked(cell.neighbors['southwest'])):
-            middle += side
-        else: 
-            middle += '  '
-        if cell.coord[0] == self.rows-1 and 'south' in cell.neighbors.keys(): # draw bottom
-            if cell.isLinked(cell.neighbors.get('south')): # if last row and has south wall
-                bottom += '    '
-            else:
-                bottom += 'x---'
+        if sum(cell.coord) % 2:
+            top += 'o' # left corners
+            top += self._drawBorder(cell, 'north') # draw top wall
+            middle += self._drawBorder(cell, 'southwest') # draw left wall
+        else:
+            bottom += '0' # leftmost corners
+            middle += self._drawBorder(cell, 'northwest') # draw left wall
+            if cell.coord[0] == self.rows-1: # if last row
+                bottom += self._drawBorder(cell, 'south')
         if cell.coord[1] == self.cols-1: # if last column
             top += 'x'
-            if not cell.isLinked(cell.neighbors.get('northwest')) or \
-            not cell.isLinked(cell.neighbors.get('southwest')):
-                middle += side
+            if sum(cell.coord) % 2: # draw right wall
+                middle += self._drawBorder(cell, 'southeast')
+            else:
+                middle += self._drawBorder(cell, 'northeast')
         return top, middle, bottom
+
+    def _cornerize(self, y: int, x: int) -> str: # given two diagonal cells
+        adjacents = [True] * 6
+        if y == self.rows:
+            adjacents[2] = adjacents[3] = False
+        elif y - 1 < 0:
+            adjacents[0] = adjacents[1] = False
+        if x == self.cols:
+            adjacents[0] = adjacents[3] = False
+        elif x - 1 <0:
+            adjacents[1] = adjacents[2] = False
+
+        for order, make_cell in enumerate(adjacents):
+            if make_cell and order == 0: # Quadrant 1
+                topRight = self.getCell(y - 1, x)
+                if not topRight.isLinked(topRight.neighbors['south']) or \
+                not topRight.isLinked(topRight.neighbors['west']):
+                    return '+'
+            if make_cell and order == 1: # Quadrant II
+                topLeft = self.getCell(y - 1, x - 1)
+                if not topLeft.isLinked(topLeft.neighbors['south']) or \
+                not topLeft.isLinked(topLeft.neighbors['east']):
+                    return '+'
+            if make_cell and order == 2: # Quadrant III
+                bottomLeft = self.getCell(y, x - 1)
+                if not bottomLeft.isLinked(bottomLeft.neighbors['north']) or \
+                not bottomLeft.isLinked(bottomLeft.neighbors['east']):
+                    return '+'
+            if make_cell and order == 3: # Quadrant IV
+                bottomRight = self.getCell(y, x)
+                if not bottomRight.isLinked(bottomRight.neighbors['north']) or \
+                not bottomRight.isLinked(bottomRight.neighbors['west']):
+                    return '+'
+        return ' '
 
 class HexGrid(Grid): # 2D hexagonal grid
     def __init__(self, rows: int, columns: int):
         super().__init__(rows, columns, shape = 6)
         '''
-             x---x       x---x
-            /     \\    /     \\
-           x       x---x       x
-            \     /     \\    /
-             x---x       x---x
-            /     \\    /     \\
-           x       x---x
-
+               x---x
+              /     \\
+         x---x       x---x
+        /     \\    /     \\
+       x       x---x       x
+        \     /     \\    /
+         x---x       x---x
+        /     \\    /     \\
+       x       x---x       x
+       \\     /     \\    /
+         x---x       x---x
+              \\    /
+               x---x
 '''
 
 
-from aldous_broder import aldousBroder
-grid = Grid(4,3)
+from recursive_backtracker import recursive_backtracker
+grid = TriGrid(4,4)
 print(grid)
-print(aldousBroder(grid))
+grid = TriGrid(5,5)
+print(grid)
+grid = TriGrid(5,4)
+print(grid)
+grid = TriGrid(4,5)
+print(grid)
+#print(recursive_backtracker(grid))

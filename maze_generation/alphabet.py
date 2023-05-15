@@ -231,6 +231,8 @@ def alphabet(phrase: str):
             for _y in range(y, y+3):
                 coord_letters.append((_y, x+2))
             coord_letters.append((y+4, x+2))
+        if letter == '.':
+            coord_letters.append((y+4, x+2))
         if letter == '\n': # space operates as newline
             x = -5; y += 6 # reset pointer
         x+=6 # increment for next word
@@ -240,7 +242,7 @@ def mask_word(phrase: str):
     words = phrase.split('\n')
     total_rows = 6 * len(words) + 1
     total_cols = 6 * len(max(words, key = len)) + 1
-    grid = Grid(total_rows,total_cols,4)
+    grid = Grid(total_rows,total_cols)
     coord_mask, coord_holes = alphabet(phrase)
     for coord in coord_mask:
         grid.mask(coord[0], coord[1])
