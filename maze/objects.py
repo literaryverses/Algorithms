@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, random, sample, shuffle
 
 class Cell:
     def __init__(self, row: int, column: int):
@@ -91,7 +91,8 @@ class Grid: # orthogonal maze
         return [top, middle, bottom]
     
     def _drawBorder(self, cell: Cell, direction: str) -> str:
-        if (direction in cell.neighbors.keys() and not cell.isLinked(cell.neighbors[direction])):
+        if (direction in cell.neighbors.keys() and \
+            not cell.isLinked(cell.neighbors[direction])):
             return self.borders[direction]
         if len(direction) == 5: # north / south
             return self.borders['vdoor']
@@ -159,16 +160,32 @@ class Grid: # orthogonal maze
         for row in range(self.rows):
             for col in range(self.cols):
                 yield self.grid[row][col]
-    
-    def count_dead_ends(self): # total dead ends in a grid
-        return [cell for cell in self.each_cell() if cell.getLinks() == 1]
 
-    def mask(self, row: int, col: int): # do not use masking with binary trees, sidewinder
+    # use recursive backtracker if masking is done
+    def mask(self, row: int, col: int): # disconnects cell from rest of grid
         cell = self.getCell(row, col)
         cell.links[None] = True
         for neighbor in cell.getNeighbors():
             if neighbor.isLinked(None):
                 cell.link(neighbor)
+    
+    def braid(self, p = 1): # link up dead ends
+        notLinked = (lambda n: True if n not in cell.links else False)
+        deadEnds = (lambda c: True if len(c.links) == 1 else False)
+        total_dead_ends = list(filter(deadEnds, self.each_cell()))
+        shuffle(total_dead_ends)
+        for cell in total_dead_ends:
+            # p == proportion of dead ends allowed
+            if len(cell.links) != 1 or random() > p:
+                continue
+            # get unlinked neighbors
+            neighbors = list(filter(notLinked, cell.getNeighbors()))
+            # best option is joining two dead ends
+            best = list(filter(deadEnds, neighbors))
+            if not best:
+                best = neighbors
+            neighbor = sample(best, 1)[0]
+            cell.link(neighbor)
 
 
 class TriGrid(Grid): # delta grid
@@ -249,11 +266,12 @@ class TriGrid(Grid): # delta grid
                     return 'x'
         return ' '
 
+
 class HexGrid(Grid): # sigma maze
     def __init__(self, rows: int, columns: int):
         super().__init__(rows, columns, shape = 6)
 
-    def __str__(self):
+    def __str__(self): # creates sigma maze from delta maze
         template = TriGrid(2*self.rows+1, self.cols*3)
         self.__hexify(template)
         for row in self.each_row():
@@ -318,3 +336,58 @@ class HexGrid(Grid): # sigma maze
         _y = (lambda _: 0 if _ else 2)(isAbove)
         for _x in range(3):
             template.mask(row+_y, col+_x)
+
+
+# Testing
+###----main-----
+from maze_generation import sidewinder
+grid = sidewinder(Grid(10,10))
+print(f'Before braiding:\n{grid}')
+grid.braid()
+print(f'After braiding:\n{grid}')
+''' RESULTS:
+Before braiding:
++---+---+---+---+---+---+---+---+---+---+
+|                                       |
++   +---+   +   +---+---+---+   +---+   +
+|   |       |               |       |   |
++---+   +---+---+   +---+---+   +---+---+
+|       |               |               |
++   +---+   +---+---+---+   +   +   +   +
+|       |           |       |   |   |   |
++   +---+   +   +---+   +---+   +   +   +
+|   |       |   |           |   |   |   |
++---+   +---+   +   +   +   +---+---+---+
+|       |       |   |   |               |
++   +---+   +---+---+---+---+   +---+---+
+|   |       |                           |
++   +---+   +   +---+   +---+   +   +---+
+|       |   |       |   |       |       |
++   +   +   +   +   +---+   +   +   +---+
+|   |   |   |   |       |   |   |       |
++---+---+   +---+---+   +   +   +---+   +
+|           |           |   |   |       |
++---+---+---+---+---+---+---+---+---+---+
+After braiding:
++---+---+---+---+---+---+---+---+---+---+
+|                                       |
++   +---+   +   +---+---+---+   +---+   +
+|           |                           |
++---+   +---+---+   +---+---+   +---+---+
+|       |                               |
++       +   +---+   +---+   +   +   +   +
+|       |           |       |   |   |   |
++   +---+   +   +---+   +---+   +   +   +
+|   |       |   |           |       |   |
++   +   +---+   +       +   +---+---+   +
+|       |       |       |               |
++   +   +   +---+---+---+---+   +---+---+
+|   |       |                           |
++   +---+   +   +---+   +---+   +       +
+|       |   |       |   |       |       |
++       +   +   +   +   +   +   +   +---+
+|       |   |   |       |   |   |       |
++   +---+   +   +---+   +   +   +---+   +
+|           |               |           |
++---+---+---+---+---+---+---+---+---+---+
+'''
