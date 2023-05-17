@@ -24,7 +24,7 @@ class Cell:
         return [v for v in self.neighbors.values() if v is not None]
 
 
-class Grid: # 2D rectangular grid
+class Grid: # orthogonal maze
     def __init__(self, rows: int, columns: int, shape = 4):
         self.rows = rows
         self.cols = columns
@@ -34,14 +34,13 @@ class Grid: # 2D rectangular grid
         self.__prepareGrid(shape)
 
     def __str__(self):
-        final = ''
+        maze = ''
         for row in self.each_row():
-            top = middle = bottom = ''
+            row_layout = ['']*3
             for cell in row:
-                top, middle, bottom = self._drawCell(top, middle, bottom, cell)
-            final += f'{top}\n{middle}\n{bottom}'
-        final += self._cornerize(cell.coord[0]+1, cell.coord[1]+1) # most bottom right corner
-        return final
+                row_layout = self._drawCell(row_layout, cell)
+            maze += '\n'.join(row_layout)
+        return maze
 
     def __prepareGrid(self, shape):
         for row in range(self.rows):
@@ -67,8 +66,8 @@ class Grid: # 2D rectangular grid
             cell.neighbors['west'] = self.getCell(row, col-1)
             cell.neighbors['east'] = self.getCell(row, col+1)
         elif shape == 6:
-            north_diagonal = (lambda r, c: r-1 if c%2 else r)(row, col)
-            south_diagonal = (lambda r, c: r if c%2 else r+1)(row, col)
+            north_diagonal = (lambda r, c: r if c%2 else r-1)(row, col)
+            south_diagonal = (lambda r, c: r+1 if c%2 else r)(row, col)
             cell.neighbors['north'] = self.getCell(row-1, col)
             cell.neighbors['south'] = self.getCell(row+1, col)
             cell.neighbors['northwest'] = self.getCell(north_diagonal, col-1)
@@ -76,20 +75,22 @@ class Grid: # 2D rectangular grid
             cell.neighbors['northeast'] = self.getCell(north_diagonal, col+1)
             cell.neighbors['southeast'] = self.getCell(south_diagonal, col+1)
 
-    def _drawCell(self, top, middle, bottom, cell):
+    def _drawCell(self, row_layout, cell):
+        top, middle, bottom = row_layout[0], row_layout[1], row_layout[2]
         top += self._cornerize(cell.coord[0], cell.coord[1])
         top += self._drawBorder(cell, 'north') # draw top wall
-        middle += self._drawBorder(cell, 'west') # draw left wall
-        middle += '   ' # draw cellular space
+        middle += f"{self._drawBorder(cell, 'west')}   "
         if cell.coord[0] == self.rows-1: # if last row
             bottom += self._cornerize(cell.coord[0]+1, cell.coord[1])
             bottom += self._drawBorder(cell, 'south') # draw bottom wall
         if cell.coord[1] == self.cols-1: # if last column
             top += self._cornerize(cell.coord[0], cell.coord[1]+1)
             middle += self._drawBorder(cell, 'east') # draw right wall
-        return top, middle, bottom
+        if sum(cell.coord) == self.cols + self.rows - 2: # last cell
+            bottom += self._cornerize(self.rows, self.cols)
+        return [top, middle, bottom]
     
-    def _drawBorder(self, cell: Cell, direction: str):
+    def _drawBorder(self, cell: Cell, direction: str) -> str:
         if (direction in cell.neighbors.keys() and not cell.isLinked(cell.neighbors[direction])):
             return self.borders[direction]
         if len(direction) == 5: # north / south
@@ -110,21 +111,21 @@ class Grid: # 2D rectangular grid
 
         for order, make_cell in enumerate(adjacents):
             if make_cell and order == 0: # Quadrant 1
-                upRight = self.getCell(y - 1, x)
+                upRight = self.getCell(y-1, x)
                 if not upRight.isLinked(upRight.neighbors['south']) or \
                 not upRight.isLinked(upRight.neighbors['west']):
                     return '+'
-            if make_cell and order == 1: # Quadrant II
-                upLeft = self.getCell(y - 1, x - 1)
+            elif make_cell and order == 1: # Quadrant II
+                upLeft = self.getCell(y-1, x-1)
                 if not upLeft.isLinked(upLeft.neighbors['south']) or \
                 not upLeft.isLinked(upLeft.neighbors['east']):
                     return '+'
-            if make_cell and order == 2: # Quadrant III
-                downLeft = self.getCell(y, x - 1)
+            elif make_cell and order == 2: # Quadrant III
+                downLeft = self.getCell(y, x-1)
                 if not downLeft.isLinked(downLeft.neighbors['north']) or \
                 not downLeft.isLinked(downLeft.neighbors['east']):
                     return '+'
-            if make_cell and order == 3: # Quadrant IV
+            elif make_cell and order == 3: # Quadrant IV
                 downRight = self.getCell(y, x)
                 if not downRight.isLinked(downRight.neighbors['north']) or \
                 not downRight.isLinked(downRight.neighbors['west']):
@@ -139,7 +140,7 @@ class Grid: # 2D rectangular grid
     
     def getRandom(self):
         while (True):
-            cell = self.grid[randint(0, self.rows - 1)][randint(0, self.cols - 1)]
+            cell = self.grid[randint(0, self.rows-1)][randint(0, self.cols-1)]
             if not cell.isLinked(None):
                 return cell
 
@@ -170,51 +171,37 @@ class Grid: # 2D rectangular grid
                 cell.link(neighbor)
 
 
-class TriGrid(Grid): # 2D triangular grid
+class TriGrid(Grid): # delta grid
     def __init__(self, rows: int, columns: int):
         super().__init__(rows, columns, shape = 3)
         self.borders = {'north': '---', 'south': '---', 'northwest': ' /', 'northeast': ' \\',
                         'southwest': ' \\', 'southeast': ' /', 'vdoor': '   ', 'hdoor': '  '}
- 
-    def __str__(self):
-        final = ''
-        for row in self.each_row():
-            top = '  '; bottom = middle = ''
-            for cell in row:
-                top, middle, bottom = self._drawCell(top, middle, bottom, cell)
-            final += f'{top}\n{middle}\n'
-        final += bottom
-        return final
-
-    def _drawCell(self, top, middle, bottom, cell):
-        if cell.coord[0] % 2 and cell.coord[1] == 0: # even rows, first column
-            top, bottom = bottom, top
+        
+    def _drawCell(self, row_layout, cell):
+        top, middle, bottom = row_layout[0], row_layout[1], row_layout[2]
         if sum(cell.coord) % 2:
-            #top += 'o'
-            top += self._cornerize(cell.coord[0], cell.coord[1] - 1)
             top += self._drawBorder(cell, 'north') # draw top wall
-            middle += self._drawBorder(cell, 'southwest') # draw left wall
-        else:
-            middle += self._drawBorder(cell, 'northwest') # draw left wall
-            if cell.coord[0] == self.rows-1: # if last row
-                #bottom += '0' # leftmost corners
-                bottom += self._cornerize(cell.coord[0] + 1, cell.coord[1] - 1)          
-                bottom += self._drawBorder(cell, 'south')
-        if cell.coord[1] == self.cols-1: # if last column
-            #top += 'x'
-            if sum(cell.coord) % 2: # draw right wall
-                top += self._cornerize(cell.coord[0], cell.coord[1] + 1)
-                middle += self._drawBorder(cell, 'southeast')
-            else:
+            top += self._cornerize(cell.coord[0], cell.coord[1]+1)
+            middle += self._drawBorder(cell, 'southwest')
+            middle += self._drawBorder(cell, 'southeast') # draw right wall
+            if cell.coord[0] == self.rows-1 and cell.coord[1] == 0: # if 1st cell in last row
+                bottom = self._drawBorder(cell, 'spaces')
+            if sum(cell.coord) == self.rows + self.cols - 2: # if last cell
+                bottom += self._cornerize(cell.coord[0]+1, cell.coord[1])
+        else: # if is pointy
+            if cell.coord[1] == 0 or cell.coord[0] == self.rows-1:
+                bottom += self._cornerize(cell.coord[0]+1, cell.coord[1]-1)
+            if cell.coord[1] == 0: # if 1st column
+                top += self._drawBorder(cell, 'spaces')
                 top += self._cornerize(cell.coord[0], cell.coord[1])
-                middle += self._drawBorder(cell, 'northeast')
-        if cell.coord[1] == self.cols-1 and cell.coord[0] == self.rows-1: # if last cell
-            #bottom += '+'
-            if sum(cell.coord) % 2: 
-                bottom += self._cornerize(cell.coord[0] + 1, cell.coord[1])
-            else:
-                bottom += self._cornerize(cell.coord[0] + 1, cell.coord[1] + 1)
-        return top, middle, bottom
+                middle += self._drawBorder(cell, 'northwest')
+            if cell.coord[0] == self.rows-1: # if last row
+                bottom += self._drawBorder(cell,'south')
+            if cell.coord[1] == self.cols-1: # if last column
+                middle += self._drawBorder(cell, 'northeast') # draw right wall
+            if sum(cell.coord) == self.rows + self.cols - 2: # if last cell
+                bottom += self._cornerize(cell.coord[0]+1, cell.coord[1]+1)
+        return [top, middle, bottom]
 
     def _cornerize(self, y: int, x: int) -> str: # given two diagonal cells
         adjacents = [True] * 6
@@ -235,57 +222,168 @@ class TriGrid(Grid): # 2D triangular grid
                 if not downMid.isLinked(downMid.neighbors['northwest']) or \
                 not downMid.isLinked(downMid.neighbors['northeast']):
                     return 'x'
-            if make_cell and order == 1:
-                downRight = self.getCell(y, x + 1)
+            elif make_cell and order == 1:
+                downRight = self.getCell(y, x+1)
                 if not downRight.isLinked(downRight.neighbors['north']) or \
                 not downRight.isLinked(downRight.neighbors['southwest']):
                     return 'x'
-            if make_cell and order == 2:
-                upRight = self.getCell(y - 1, x + 1)
+            elif make_cell and order == 2:
+                upRight = self.getCell(y-1, x+1)
                 if not upRight.isLinked(upRight.neighbors['south']) or \
-                not upRight.isLinked(upRight.neighbors['northeast']):
+                not upRight.isLinked(upRight.neighbors['northwest']):
                     return 'x'
-            if make_cell and order == 3:
-                upMid = self.getCell(y - 1, x)
+            elif make_cell and order == 3:
+                upMid = self.getCell(y-1, x)
                 if not upMid.isLinked(upMid.neighbors['southeast']) or \
                 not upMid.isLinked(upMid.neighbors['southwest']):
                     return 'x'
-            if make_cell and order == 4:
-                upLeft = self.getCell(y - 1, x - 1)
+            elif make_cell and order == 4:
+                upLeft = self.getCell(y-1, x-1)
                 if not upLeft.isLinked(upLeft.neighbors['northeast']) or \
                 not upLeft.isLinked(upLeft.neighbors['south']):
                     return 'x'
-            if make_cell and order == 5:
-                downLeft = self.getCell(y, x - 1)
+            elif make_cell and order == 5:
+                downLeft = self.getCell(y, x-1)
                 if not downLeft.isLinked(downLeft.neighbors['north']) or \
-                not downLeft.isLinked(downLeft.neighbors['southwest']):
+                not downLeft.isLinked(downLeft.neighbors['southeast']):
                     return 'x'
-
         return ' '
 
-class HexGrid(Grid): # 2D hexagonal grid
+class HexGrid(Grid): # sigma maze
     def __init__(self, rows: int, columns: int):
         super().__init__(rows, columns, shape = 6)
-        '''
-               x---x
-              /     \\
-         x---x       x---x
-        /     \\    /     \\
-       x       x---x       x
-        \     /     \\    /
-         x---x       x---x
-        /     \\    /     \\
-       x       x---x       x
-       \\     /     \\    /
-         x---x       x---x
-              \\    /
-               x---x
-'''
 
+    def __str__(self):
+        template = TriGrid(2*self.rows+1, self.cols*3)
+        self.__hexify(template)
+        for row in self.each_row():
+            for cell in row:
+                template = self.__reformat(cell, template)
+        return str(template)
+    
+    # link up triangular grid to match the links of hexagonal maze
+    def __reformat(self, hex_cell: Cell, tri_grid: TriGrid) -> TriGrid:
+        for direction in hex_cell.neighbors.keys():
+            if hex_cell.isLinked(hex_cell.neighbors[direction]):
+                triangle = self.__getTriangle(hex_cell, direction, tri_grid)
+                triangle.link(triangle.neighbors[direction])
+        return tri_grid
+
+    # returns corresponding triangular cell according to direction of hexagonal cell
+    def __getTriangle(self, hex_cell: Cell, direction: str, tri_grid: TriGrid) -> Cell:
+        row, col = hex_cell.coord
+        adjust = (lambda c: 1 if c%2 else 0)(col)
+        if direction == 'northwest':
+            return tri_grid.getCell(2*row+adjust, 3*col)
+        elif direction == 'north':
+            return tri_grid.getCell(2*row+adjust, 3*col+1)
+        elif direction == 'northeast':
+            return tri_grid.getCell(2*row+adjust, 3*col+2)
+        elif direction == 'southeast':
+            return tri_grid.getCell(2*row+adjust+1, 3*col+2)
+        elif direction == 'south':
+            return tri_grid.getCell(2*row+adjust+1, 3*col+1)
+        elif direction == 'southwest':
+            return tri_grid.getCell(2*row+adjust+1, 3*col)
+    
+    # create hexagonal grid from triangular grid
+    def __hexify(self, template: TriGrid):
+        y = x = 0
+        for _ in range(self.rows*self.cols): # make sigma maze
+            if x == 3*self.cols:
+                x = 0; y += 2 # reset coord
+            if x % 2:
+                self.__linkUp(template, y+1, x)
+                if y == 0:
+                    self.__maskUp(template, y, x, True)
+            else:
+                self.__linkUp(template, y, x)
+                if y == 2*self.rows-2:
+                    self.__maskUp(template, y, x, False)
+            x += 3
+
+    # link triangular cells into hexagonal cell
+    def __linkUp(self, template: TriGrid, row: int, col: int):
+        current = template.getCell(row, col)
+        for _x in range(1,3):
+            temp, current = current, template.getCell(row, col+_x)
+            temp.link(current)
+        for _x in range(2,-1,-1):
+            temp, current = current, template.getCell(row+1, col+_x)
+            temp.link(current)
+        current.link(template.getCell(row, col))
+
+    # mask triangular cells so only hexagonal cells remain
+    def __maskUp(self, template: TriGrid, row: int, col: int, isAbove: bool):
+        _y = (lambda _: 0 if _ else 2)(isAbove)
+        for _x in range(3):
+            template.mask(row+_y, col+_x)
 
 from recursive_backtracker import recursive_backtracker
-grid = TriGrid(4,4)
-print(grid)
-grid.mask(3,3)
-grid.mask(1,1)
-print(recursive_backtracker(grid))
+
+hex_test = HexGrid(2,5)
+print(f'Hex Grid template:\n{hex_test}')
+
+tri_test = TriGrid(5,15)
+tri_test.mask(0,4);tri_test.mask(0,5);tri_test.mask(0,3)
+tri_test.mask(0,9);tri_test.mask(0,10);tri_test.mask(0,11)
+tri_test.mask(4,0);tri_test.mask(4,1);tri_test.mask(4,2)
+tri_test.mask(4,6);tri_test.mask(4,7);tri_test.mask(4,8)
+tri_test.mask(4,12);tri_test.mask(4,13);tri_test.mask(4,14)
+print(f'Tri Grid template:\n{tri_test}')
+
+print(f'Hex Grid Recursive backtracker:\n{recursive_backtracker(hex_test)}')
+print(f'Tri Grid Recursive backtracker:\n{recursive_backtracker(tri_test)}')
+
+'''
+RESULTS:
+Hex Grid template:
+  x---x       x---x       x---x
+ /     \     /     \     /     \
+x       x---x       x---x       x
+ \     /     \     /     \     /
+  x---x       x---x       x---x
+ /     \     /     \     /     \
+x       x---x       x---x       x
+ \     /     \     /     \     /
+  x---x       x---x       x---x
+       \     /     \     /      
+        x---x       x---x        
+Tri Grid template:
+  x---x       x---x       x---x
+ / \ / \     / \ / \     / \ / \
+x---x---x---x---x---x---x---x---x
+ \ / \ / \ / \ / \ / \ / \ / \ /
+  x---x---x---x---x---x---x---x
+ / \ / \ / \ / \ / \ / \ / \ / \
+x---x---x---x---x---x---x---x---x
+ \ / \ / \ / \ / \ / \ / \ / \ /
+  x---x---x---x---x---x---x---x
+       \ / \ /     \ / \ /      
+        x---x       x---x        
+Hex Grid Recursive backtracker:
+  x---x       x---x       x---x
+ /     \     /     \     /     \
+x       x---x       x---x       x
+ \                             /
+  x---x       x---x       x   x
+ /     \           \     /     \
+x       x---x       x---x       x
+ \                 /           /
+  x---x       x---x       x---x
+       \     /     \     /      
+        x---x       x---x        
+Tri Grid Recursive backtracker:
+  x---x       x---x       x---x
+ /     \     /     \     /     \
+x   x---x---x---x   x---x   x   x
+ \         /   /           /   /
+  x   x   x   x---x   x---x   x
+ /   / \   \         /   /   / \
+x   x   x   x---x---x   x   x   x
+ \       \             /       /
+  x---x   x---x---x   x   x---x
+       \     /     \     /      
+        x---x       x---x
+'''
+
