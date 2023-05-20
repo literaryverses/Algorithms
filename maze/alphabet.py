@@ -238,11 +238,13 @@ def alphabet(phrase: str): # letter coordinates for masking
         x+=6 # increment for next word
     return coord_letters, coord_holes
 
-def __mazify(grid, coord): # recursive backtracker
+def __mazify(grid, coord, isHole): # recursive backtracker
     stack = []
     stack.append(grid.getCell(coord[0],coord[1]))
     while stack:
         cell = stack[-1]
+        if isHole:
+            grid.secret_mask(coord[0],coord[1])
         neighbors = [n for n in cell.getNeighbors() if not n.getLinks()]
         if neighbors:
             neighbor = sample(neighbors,1)[0]
@@ -261,5 +263,5 @@ def mask_word(phrase: str) -> Grid: # inputs string and outputs maze
     for coord in coord_mask:
         grid.mask(coord[0], coord[1])
     for coord in coord_holes:
-        __mazify(grid, coord)
-    return __mazify(grid, grid.getRandom().coord)
+        __mazify(grid, coord, True)
+    return __mazify(grid, grid.getRandom().coord, False)

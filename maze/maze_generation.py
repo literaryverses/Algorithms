@@ -1,6 +1,6 @@
 # Performs maze generation algorithms
 
-from random import randint, sample, shuffle
+from random import randint, choice, shuffle
 
 '''
 Aldous-Broder: breaks down walls between unvisited cells until all the cells
@@ -10,7 +10,7 @@ def aldousBroder(grid):
     cell = grid.getRandom()
     unvisited = grid.getSize() - 1
     while unvisited > 0:
-        neighbor = sample(cell.getNeighbors(), 1)[0]
+        neighbor = choice(cell.getNeighbors())
         if not neighbor.links: # checks if neighbor has no links
             cell.link(neighbor)
             unvisited -= 1
@@ -21,7 +21,7 @@ def aldousBroder(grid):
 Binary Tree: destroys either a longitudinal or latitudinal wall in each cell,
 using an equiprobable random selection
 '''
-def binaryTree(grid, skew: str):
+def binaryTree(grid, skew = ''):
     skews = { # preferred directions to move
         'NW': ('north', 'west'),
         'NE': ('north', 'east'),
@@ -29,7 +29,7 @@ def binaryTree(grid, skew: str):
         'SE': ('south', 'east'),}
     # randomized skew if input skew is incorrect
     if (skew:=skew.upper()) not in skews:
-        skew = skews.keys()[randint(0,3)]
+        skew = choice(list(skews.keys()))
     for cell in grid.each_cell():
         neighbors = []
         neighbors.append(cell.neighbors.get(skews.get(skew)[0]))
@@ -56,7 +56,7 @@ def hunt_and_kill(grid):
         unvisited_neighbors = [n for n in neighbors 
                                if not n.getLinks()]
         if unvisited_neighbors:
-            neighbor = sample(unvisited_neighbors,1)[0]
+            neighbor = choice(unvisited_neighbors)
             current.link(neighbor)
             current = neighbor
         else:
@@ -68,7 +68,7 @@ def hunt_and_kill(grid):
                 # if visited neighbors exist and cell has no links
                 if visited_neighbors and not cell.getLinks():
                     current = cell
-                    neighbor = sample(visited_neighbors,1)[0]
+                    neighbor = choice(visited_neighbors)
                     current.link(neighbor)
                     break
     return grid
@@ -83,7 +83,7 @@ def recursive_backtracker(grid):
         cell = stack[-1]
         neighbors = [n for n in cell.getNeighbors() if not n.getLinks()]
         if neighbors:
-            neighbor = sample(neighbors,1)[0]
+            neighbor = choice(neighbors)
             cell.link(neighbor)
             stack.append(neighbor)
         else:
@@ -126,14 +126,14 @@ Wilson's: draws multiple paths from unvisited cells to a visited one until
 there are no more unvisited cells.
 '''
 def wilsons(grid):
-    unvisited = grid.each_cell()
+    unvisited = list(grid.each_cell())
     shuffle(unvisited)
     unvisited.pop() # set first goal cell
     while unvisited:
         path = unvisited[0:1]
         cell = path[0]
         while cell in unvisited: # create path
-            cell = sample(cell.getNeighbors(), 1)[0]
+            cell = choice(cell.getNeighbors())
             if cell in path: # remove loops
                 path = path[:path.index(cell)+1]
             else:
