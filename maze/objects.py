@@ -1,5 +1,11 @@
 from random import randint, random, shuffle, choice
 
+'''
+NOTES:
+-binary trees, sidewinder, and kruskals are for orthogonal grids only
+-do not use the above algos for masking
+'''
+
 class Cell:
     def __init__(self, row: int, column: int, level = 0):
         self.coord = (row, column)
@@ -151,25 +157,21 @@ class Grid: # orthogonal maze
             adjacents[1] = adjacents[2] = False
 
         for order, make_cell in enumerate(adjacents):
-            if make_cell and order == 0: # Quadrant 1
-                upRight = self.getCell(y-1, x, z)
-                if not upRight.isLinked(upRight.neighbors['south']) or \
-                    not upRight.isLinked(upRight.neighbors['west']):
-                    return '+'
-            elif make_cell and order == 1: # Quadrant II
-                upLeft = self.getCell(y-1, x-1, z)
-                if not upLeft.isLinked(upLeft.neighbors['south']) or \
-                    not upLeft.isLinked(upLeft.neighbors['east']):
-                    return '+'
-            elif make_cell and order == 2: # Quadrant III
-                downLeft = self.getCell(y, x-1, z)
-                if not downLeft.isLinked(downLeft.neighbors['north']) or \
-                    not downLeft.isLinked(downLeft.neighbors['east']):
-                    return '+'
-            elif make_cell and order == 3: # Quadrant IV
-                downRight = self.getCell(y, x, z)
-                if not downRight.isLinked(downRight.neighbors['north']) or \
-                    not downRight.isLinked(downRight.neighbors['west']):
+            long = (lambda o: 'WE'[o<3 and o>0])(order)
+            lat = (lambda o: 'NS'[o<2])(order)
+            skews = {'N': 'north', 'S': 'south', 'W': 'west', 'E': 'east'}
+            def upRight():
+                return self.getCell(y-1,x,z)
+            def upLeft():
+                return self.getCell(y-1, x-1, z)
+            def downLeft():
+                return self.getCell(y, x-1, z)
+            def downRight():
+                return self.getCell(y, x, z)
+            if make_cell:
+                cell = [upRight, upLeft, downLeft, downRight][order]()
+                if not cell.isLinked(cell.neighbors[skews[long]]) or\
+                not cell.isLinked(cell.neighbors[skews[lat]]):
                     return '+'
         return ' '
     
@@ -213,7 +215,6 @@ class Grid: # orthogonal maze
                     elif not cell.isMasked():
                         yield cell
 
-    # avoid binary trees and sidewinder algos; recursive backtracker works best
     def mask(self, row: int, col: int, lvl = 0): # disconnects cell from rest of grid
         if row < 0 or row >= self.rows:
             raise Exception(f'Row {row} not within parameters')
@@ -229,13 +230,13 @@ class Grid: # orthogonal maze
                 cell.link(neighbor)
     
     def braid(self, p = 1): # link up dead ends
-        notLinked = (lambda n: True if n not in cell.links else False)
-        deadEnds = (lambda c: True if len(c.links) == 1 else False)
+        notLinked = (lambda n: True if n not in cell.getLinks() else False)
+        deadEnds = (lambda c: True if len(c.getLinks()) == 1 else False)
         total_dead_ends = list(filter(deadEnds, self.each_cell()))
         shuffle(total_dead_ends)
         for cell in total_dead_ends:
             # p == proportion of dead ends allowed
-            if len(cell.links) != 1 or random() > p:
+            if len(cell.getLinks()) != 1 or random() > p:
                 continue
             # get unlinked neighbors
             neighbors = list(filter(notLinked, cell.getNeighbors()))
@@ -277,34 +278,6 @@ class TriGrid(Grid): # delta grid
             middle += f"{self._drawBorder(cell,'within')}{self._drawBorder(cell, 'northeast')}"
             if sum(cell.coord) == self.cols + self.rows - 2: # last cell
                 bottom += f'{self._drawCorner(cell.coord[0]+1, cell.coord[1]+1, cell.lvl)}\n'
-        return [top, middle, bottom]
-        '''
-        if sum(cell.coord) % 2:
-            top += self._drawBorder(cell, 'north')
-            top += self._cornerize(cell.coord[0], cell.coord[1]+1, cell.lvl)
-            if cell.coord[0] % 2 and cell.coord[1] == 0:
-                middle += ' '
-            middle += f"{self._drawBorder(cell, 'southwest')}"
-            middle += f"{self._drawBorder(cell,'within')}{self._drawBorder(cell, 'southeast')}"
-            if cell.coord[0] == self.rows-1 and cell.coord[1] == 0: # if 1st cell in last row
-                bottom = '  '
-            if sum(cell.coord) == self.rows + self.cols - 2: # if last cell
-                bottom += f'{self._cornerize(cell.coord[0]+1, cell.coord[1], cell.lvl)}\n'
-        else: # if is pointy
-            if cell.coord[1] == 0 or cell.coord[0] == self.rows-1:
-                bottom += self._cornerize(cell.coord[0]+1, cell.coord[1]-1, cell.lvl)
-            if cell.coord[1] == 0: # if 1st column
-                top += f'  {self._cornerize(cell.coord[0], cell.coord[1], cell.lvl)}'
-                middle += f" {self._drawBorder(cell, 'northwest')}{self._drawBorder(cell,'within')}"
-            else:
-                middle += self._drawBorder(cell,'within')
-            if cell.coord[0] == self.rows-1: # if last row
-                bottom += self._drawBorder(cell,'south')
-            if cell.coord[1] == self.cols-1: # if last column
-                middle += self._drawBorder(cell, 'northeast')
-            if sum(cell.coord) == self.rows + self.cols - 2: # if last cell
-                bottom += f'{self._cornerize(cell.coord[0]+1, cell.coord[1]+1, cell.lvl)}\n'
-        '''
         return [top, middle, bottom]
 
     def _drawCorner(self, y: int, x: int, z = 0) -> str: # given two diagonal cells
@@ -376,33 +349,22 @@ class HexGrid(Grid): # sigma maze
             elif hex_cell.isLinked(None): # hex cell links to none, hence is masked
                 triangle = self.__getTriangle(hex_cell, 'up', triGrid) # get corresp triangle
                 self.__maskUp(triGrid, False, triangle.coord[0], triangle.coord[1], triangle.lvl)
-
-            '''
-         for direction in hex_cell.neighbors.keys():
-            neighbor = hex_cell.neighbors[direction]
-            if neighbor and hex_cell.isLinked(neighbor):
-                triangle = self.__getTriangle(hex_cell, direction, triGrid)
-                triangle.link(triangle.neighbors[direction])'''
         return triGrid
 
     # returns corresponding triangular cell according to direction of hexagonal cell
     def __getTriangle(self, hex_cell: Cell, direction: str, triGrid: TriGrid) -> Cell:
         row, col = hex_cell.coord; lvl = hex_cell.lvl
-        adjust = (lambda c: 1 if c%2 else 0)(col)
-        if direction == 'northwest':
-            return triGrid.getCell(2*row+adjust, 3*col, lvl)
-        elif direction == 'north':
-            return triGrid.getCell(2*row+adjust, 3*col+1, lvl)
-        elif direction == 'northeast':
-            return triGrid.getCell(2*row+adjust, 3*col+2, lvl)
-        elif direction == 'southeast':
-            return triGrid.getCell(2*row+adjust+1, 3*col+2, lvl)
-        elif direction == 'south':
-            return triGrid.getCell(2*row+adjust+1, 3*col+1, lvl)
-        elif direction == 'southwest':
-            return triGrid.getCell(2*row+adjust+1, 3*col, lvl)
-        elif direction == 'up' or direction == 'down': # returns corresponding triangular cell
-            return triGrid.getCell(2*row+adjust, 3*col, lvl)
+        def y_adjust(col, direction):
+            adjust = 0
+            if direction[0] == 's': adjust += 1
+            if col%2: adjust += 1
+            return adjust
+        def x_adjust(direction):
+            adjust = 0
+            if len(direction) == 5: adjust += 1
+            if direction[-4:] == 'east': adjust += 2
+            return adjust
+        return triGrid.getCell(2 * row + y_adjust(col, direction), x_adjust(direction), lvl)
     
     # create hexagonal grid from triangular grid
     def __hexify(self, triGrid: TriGrid):
@@ -432,6 +394,7 @@ class HexGrid(Grid): # sigma maze
             temp.link(current)
         current.link(triGrid.getCell(row, col, lvl))
 
+    # imposes masking from sigma maze to delta maze
     def __maskUp(self, triGrid: TriGrid, isEdge: bool, row: int, col: int, lvl = 0):
         y_edge = (lambda r: 2 if r == triGrid.rows-3 else 0)(row)
         if isEdge: # if formating edge
@@ -441,152 +404,3 @@ class HexGrid(Grid): # sigma maze
             for x in range(3):
                 triGrid.mask(row, col+x, lvl) # top row of hexagon
                 triGrid.mask(row+1, col+x, lvl) # bottom row of hexagon
-
-# Testing and Demonstrations
-###----main-----
-from maze_generation import *
-# Test algorithms
-print(aldousBroder(Grid(5,5))) 
-print(binaryTree(Grid(5,5)))
-print(hunt_and_kill(Grid(5,5)))
-print(recursive_backtracker(Grid(5,5)))
-print(sidewinder(Grid(5,5)))
-print(wilsons(Grid(5,5)))
-
-# Test masking
-grid = Grid(5,5)
-grid.mask(2,2); grid.mask(0,0)
-print(aldousBroder(grid))
-
-# test 3D levels
-grid1 = Grid(5,5,3)
-grid1.mask(2,2,0); grid1.mask(2,2,1); grid1.mask(2,2,2)
-print(wilsons(grid1))
-
-# test grid classes
-grid2 = TriGrid(3,2,8)
-print(aldousBroder(grid2))
-
-grid3 = HexGrid(3,4)
-grid3.mask(0,0)
-grid3.mask(1,0);grid3.mask(0,0);grid3.mask(2,0)
-grid3.mask(2,1);grid3.mask(2,3)
-print(grid3)
-
-'''
-+---+---+---+---+---+
-|       |   |       |
-+   +---+   +   +---+
-|               |   |
-+---+---+---+   +   +
-|           |       |
-+---+   +---+   +---+
-|               |   |
-+---+---+---+   +   +
-|                   |
-+---+---+---+---+---+
-
-+---+---+---+---+---+
-|           |   |   |
-+---+---+   +   +   +
-|               |   |
-+---+---+---+   +   +
-|   |           |   |
-+   +---+---+   +   +
-|   |       |       |
-+   +---+   +---+   +
-|                   |
-+---+---+---+---+---+
-
-+---+---+---+---+---+
-|                   |
-+---+   +---+---+   +
-|           |       |
-+   +---+---+   +---+
-|           |       |
-+---+---+---+---+   +
-|   |               |
-+   +   +---+---+---+
-|                   |
-+---+---+---+---+---+
-
-+---+---+---+---+---+
-|               |   |
-+   +   +---+   +   +
-|   |       |       |
-+   +---+   +---+   +
-|   |       |       |
-+---+   +---+   +---+
-|       |   |   |   |
-+---+---+   +   +   +
-|                   |
-+---+---+---+---+---+
-
-+---+---+---+---+---+
-|                   |
-+---+---+   +   +   +
-|           |   |   |
-+   +   +---+---+   +
-|   |   |           |
-+   +   +---+   +---+
-|   |   |           |
-+   +---+   +---+   +
-|       |   |       |
-+---+---+---+---+---+
-
-+---+---+---+---+---+
-|           |       |
-+   +---+   +   +---+
-|   |               |
-+   +---+   +   +   +
-|   |       |   |   |
-+---+---+---+   +---+
-|           |       |
-+   +---+---+---+   +
-|                   |
-+---+---+---+---+---+
-
-    +---+---+---+---+
-    |   |   |       |
-+---+   +   +   +---+
-|       |       |   |
-+   +---+---+   +   +
-|       |   |   |   |
-+   +   +---+   +   +
-|   |       |       |
-+   +---+   +---+   +
-|       |           |
-+---+---+---+---+---+
-
-+---+---+---+---+---+   +---+---+---+---+---+   +---+---+---+---+---+   
-|         O   O   O |   | O   O | 0 | 0 | @ |   | 0 | 0     |   | 0 |   
-+   +   +---+   +---+   +---+---+   +---+---+   +   +---+---+   +---+   
-|   | O | O | O     |   |   | @ | 0 | 0     |   |   | 0             |   
-+   +   +---+   +   +   +   +---+---+---+---+   +   +   +---+   +---+   
-|   | O |   |   |   |   |     0 |   |   | O |   |   |   |   |   | 0 |   
-+---+---+---+   +---+   +---+---+---+   +   +   +   +---+---+   +---+   
-| O |           | O |   | @ | O | O     | 0 |   | 0 | 0 | 0         |   
-+---+   +   +   +   +   +---+   +---+   +---+   +   +---+   +   +---+   
-| O |   |   |       |   | @     | O |       |   | 0       0 |       |   
-+---+---+---+---+---+   +---+---+---+---+---+   +---+---+---+---+---+   
-  x---x     x---x     x---x     x---x     x---x     x---x     x---x     x---x   
- / \O/     /O 0/     /@\O/     /0 0/     /  O/     / \@/     /O\@/     /0 0/    
-x   x     x   x     x---x     x   x     x   x     x   x     x   x     x---x     
- \O/O\     \@/0\     \0 O\     \O/@\     \0/0\     \O  \     \0 O\     \  0\    
-  x---x     x   x     x---x     x   x     x   x     x---x     x---x     x---x   
- /O  /     /@ O/     /@\@/     /0\0/     /  O/     /O\@/     /0 @/     /  0/    
-x---x     x---x     x---x     x---x     x---x     x---x     x---x     x---x     
-              x---x        
-             /     \      
-        x---x       x---x
-       /     \     /     \
-      x       x---x       x
-       \     /     \     /
-        x---x       x---x
-       /     \     /     \
-      x       x---x       x
-       \     /     \     /
-        x---x       x---x
-             \     /      
-              x---x  
-'''

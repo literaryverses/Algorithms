@@ -1,6 +1,6 @@
 # Performs maze generation algorithms
 
-from random import randint, choice, shuffle
+from random import randint, choice, shuffle, random
 
 '''
 Aldous-Broder: breaks down walls between unvisited cells until all the cells
@@ -11,7 +11,7 @@ def aldousBroder(grid):
     unvisited = grid.getSize() - 1
     while unvisited > 0:
         neighbor = choice(cell.getNeighbors())
-        if not neighbor.links: # checks if neighbor has no links
+        if not neighbor.getLinks(): # checks if neighbor has no links
             cell.link(neighbor)
             unvisited -= 1
         cell = neighbor
@@ -22,12 +22,12 @@ Binary Tree: destroys either a longitudinal or latitudinal wall in each cell,
 using an equiprobable random selection
 '''
 def binaryTree(grid, skew = ''):
-    skews = { # preferred directions to move
+    # randomized skew if input skew is unspecified or incorrect
+    skews = { # preferred directions to move for orthogonal maze
         'NW': ('north', 'west'),
         'NE': ('north', 'east'),
         'SW': ('south', 'west'),
-        'SE': ('south', 'east'),}
-    # randomized skew if input skew is incorrect
+        'SE': ('south', 'east')}
     if (skew:=skew.upper()) not in skews:
         skew = choice(list(skews.keys()))
     for cell in grid.each_cell():
@@ -43,6 +43,41 @@ def binaryTree(grid, skew = ''):
             continue
         neighbor = neighbors[index]
         cell.link(neighbor)
+    return grid
+
+'''
+Eller's:
+'''
+def ellers(grid):
+    return
+
+from objects import Grid
+grid = Grid(10,10)
+print(ellers(grid))
+
+
+
+'''
+Growing Tree: implements both simplified and true Prim's algorithms proport
+proportionally based on input from 0 (random selection, Prim's) to 1 (last
+selection, recursive backtracking). The Default is set to 0.5, meaning the 
+two options are equiprobable.
+'''
+def growingTree(grid, slider = 0.5):
+    isAvailable = lambda n: True if not n.getLinks() else False
+    active = []
+    active.append(grid.getRandom())
+    while active:
+        randomly = (lambda l: choice(l))(active) # Prim's (simplified)
+        last = (lambda l: l[-1])(active) # Recursive backtracker
+        cell = [randomly, last][random() < slider]
+        neighbors = list(filter(isAvailable,cell.getNeighbors()))
+        if neighbors:
+            neighbor = choice(neighbors)
+            cell.link(neighbor)
+            active.append(neighbor)
+        else:
+            active.remove(cell)
     return grid
 
 '''
@@ -74,7 +109,84 @@ def hunt_and_kill(grid):
     return grid
 
 '''
-Recursive backtracker: recursively backtracks from dead ends
+Kruskal's: randomly (since no path cost assigned) merges a pair neighboring
+cells as long as they are not already linked
+'''
+def kruskals(grid):
+    # randomized skew if input skew is unspecified or incorrect
+    neighbors = [] # track pairs of neighboring cells
+    set_for_cell = {} # maps cells to corresponding set identifiers
+    cells_in_set = {} # maps set identifiers to cells belonging to those sets    
+    can_merge = lambda l,r: set_for_cell[l] != set_for_cell[r]
+
+    def merge(left, right):
+        left.link(right)
+        winner = set_for_cell[left]
+        loser = set_for_cell[right]
+        losers = cells_in_set[loser]
+        for cell in losers:
+            cells_in_set[winner].add(cell)
+            set_for_cell[cell] = winner
+        cells_in_set.pop(loser)  
+
+    for i,cell in enumerate(grid.each_cell()):
+        set_for_cell[cell] = i # assign each cell to own set
+        cells_in_set[i] = {cell}
+        if cell.neighbors.get('south'):
+            neighbors.append([cell, cell.neighbors['south']])
+        if cell.neighbors.get('east'):
+            neighbors.append([cell, cell.neighbors['east']])
+
+    shuffle(neighbors)
+    while neighbors:
+        left, right = neighbors.pop() # chooses pair of neighboring cells 
+        if can_merge(left, right): # if belong to different sets, merge
+            merge(left, right) 
+    return grid
+
+'''
+Prim's (simplified): Prim's algorithm if every path had equal weight, 
+in which a random neighboring cell is added to the path one-by-one
+'''
+def prims_sim(grid):
+    isAvailable = lambda n: True if not n.getLinks() else False
+    active = []
+    active.append(grid.getRandom())
+    while active:
+        cell = choice(active)
+        neighbors = list(filter(isAvailable,cell.getNeighbors()))
+        if neighbors:
+            neighbor = choice(neighbors)
+            cell.link(neighbor)
+            active.append(neighbor)
+        else:
+            active.remove(cell)
+    return grid
+
+'''
+Prim's (true): randomly assigns weights to cells and adds neighboring
+cells according to those costs
+'''
+def prims_true(grid):
+    isAvailable = lambda n: True if not n.getLinks() else False
+    active = []
+    active.append(grid.getRandom())
+    costs = {}
+    for cell in grid.each_cell():
+        costs[cell] = randint(0,100)
+    while active:
+        cell = min(active, key=costs.get)
+        neighbors = list(filter(isAvailable,cell.getNeighbors()))
+        if neighbors:
+            neighbor = min(neighbors, key=costs.get)
+            cell.link(neighbor)
+            active.append(neighbor)
+        else:
+            active.remove(cell)
+    return grid
+
+'''
+Recursive backtracker: DFS that recursively backtracks from dead ends
 '''
 def recursive_backtracker(grid):
     stack = [] # stack to recurse through
@@ -89,6 +201,12 @@ def recursive_backtracker(grid):
         else:
             stack.pop()
     return grid
+
+'''
+Recursive division:
+'''
+def recursive_division(grid):
+    return
 
 '''
 Sidewinder: decides to destroy the right wall or not for every cell based
