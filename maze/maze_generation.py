@@ -54,7 +54,6 @@ def binaryTree(grid, skew = ''):
 Eller's: links adjacent neighing cells for each set assigned per row. A
 combination of sidewinder (descending per row) and Kruskal's (assigning sets)
 '''
-
 def ellers(grid):
     set_for_cell = {} # maps cells to corresponding set identifiers
     cells_in_set = {} # maps set identifiers to cells belonging to those sets       
@@ -139,8 +138,7 @@ def hunt_and_kill(grid):
     current = grid.getRandom()
     while current:
         neighbors = current.getNeighbors()
-        unvisited_neighbors = [n for n in neighbors 
-                               if not n.getLinks()]
+        unvisited_neighbors = [n for n in neighbors if not n.getLinks()]
         if unvisited_neighbors:
             neighbor = choice(unvisited_neighbors)
             current.link(neighbor)
@@ -193,6 +191,32 @@ def kruskals(grid):
         left, right = neighbors.pop() # chooses pair of neighboring cells 
         if can_merge(left, right): # if belong to different sets, merge
             merge(left, right) 
+    return grid
+
+'''
+Prim and Kill: Repeatedly starts a random walk from a visited region until
+all unvisited cells are visited
+'''
+def prim_and_kill(grid):
+    def random_walk(unvisited, visited, cell):
+        isUnvisited = lambda n: True if n in unvisited else False
+        visited.add(cell); unvisited.discard(cell)
+        while (neighbors := list(filter(isUnvisited, cell.getNeighbors()))):
+            next = choice(neighbors)
+            cell.link(next)
+            cell = next
+            visited.add(cell); unvisited.remove(cell)
+        return unvisited, visited
+    
+    unvisited = set(grid.each_cell())
+    visited = set()
+    cell = grid.getRandom()
+    while unvisited:
+        unvisited, visited = random_walk(unvisited, visited, cell)
+        cell = choice(list(visited))
+        for neighbor in cell.getNeighbors():
+            if neighbor in unvisited:
+                break
     return grid
 
 '''
