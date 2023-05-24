@@ -2,16 +2,15 @@ from random import randint, random, shuffle, choice
 
 '''
 NOTES:
--binary trees, sidewinder, and kruskals are for orthogonal grids only
+-binary trees, sidewinder, recursive_backtracking, ellers and kruskals are for orthogonal grids only
 -do not use the above algos for masking
 '''
 
 class Cell:
     def __init__(self, row: int, column: int, level = 0):
-        self.coord = (row, column)
+        self.coord = (row, column, level)
         self.neighbors = {}
         self.links = {}
-        self.lvl = level
 
     def link(self, cell):
         self.links[cell] = True
@@ -76,9 +75,9 @@ class Grid: # orthogonal maze
             self.__configureCells(cell, shape)
 
     def __configureCells(self, cell, shape):
-        row, col = cell.coord; lvl = cell.lvl
+        row, col, lvl = cell.coord
         if shape == 3:
-            if sum(cell.coord) % 2:
+            if sum(cell.coord[:-1]) % 2:
                 cell.neighbors['north'] = self.getCell(row-1, col, lvl)
                 cell.neighbors['southeast'] = self.getCell(row, col+1, lvl)
                 cell.neighbors['southwest'] = self.getCell(row, col-1, lvl)
@@ -106,17 +105,17 @@ class Grid: # orthogonal maze
 
     def _drawCell(self, row_layout, cell):
         top, middle, bottom = row_layout[0], row_layout[1], row_layout[2]
-        top += self._drawCorner(cell.coord[0], cell.coord[1], cell.lvl)
+        top += self._drawCorner(cell.coord[0], cell.coord[1], cell.coord[2])
         top += self._drawBorder(cell, 'north') # draw top wall
         middle += f"{self._drawBorder(cell, 'west')} {self._drawBorder(cell, 'within')} "
         if cell.coord[0] == self.rows-1: # if last row
-            bottom += self._drawCorner(cell.coord[0]+1, cell.coord[1], cell.lvl)
+            bottom += self._drawCorner(cell.coord[0]+1, cell.coord[1], cell.coord[2])
             bottom += self._drawBorder(cell, 'south') # draw bottom wall
         if cell.coord[1] == self.cols-1: # if last column
-            top += self._drawCorner(cell.coord[0], cell.coord[1]+1, cell.lvl)
+            top += self._drawCorner(cell.coord[0], cell.coord[1]+1, cell.coord[2])
             middle += self._drawBorder(cell, 'east') # draw right wall
-        if sum(cell.coord) == self.cols + self.rows - 2: # last cell
-            bottom += f'{self._drawCorner(self.rows, self.cols, cell.lvl)}\n'
+        if sum(cell.coord[:-1]) == self.cols + self.rows - 2: # last cell
+            bottom += f'{self._drawCorner(self.rows, self.cols, cell.coord[2])}\n'
         return [top, middle, bottom]
     
     def __drawWithin(self, cell: Cell) -> str:
@@ -257,27 +256,27 @@ class TriGrid(Grid): # delta grid
         
     def _drawCell(self, row_layout, cell):
         top, middle, bottom = row_layout[0], row_layout[1], row_layout[2]
-        if sum(cell.coord) % 2:
+        if sum(cell.coord[:-1]) % 2:
             if cell.coord[1] == 0: # 1st column
-                top += self._drawCorner(cell.coord[0], cell.coord[1]-1, cell.lvl)
+                top += self._drawCorner(cell.coord[0], cell.coord[1]-1, cell.coord[2])
                 middle += f" {self._drawBorder(cell, 'southwest')}"
             top += self._drawBorder(cell, 'north')
-            top += self._drawCorner(cell.coord[0], cell.coord[1]+1, cell.lvl)
+            top += self._drawCorner(cell.coord[0], cell.coord[1]+1, cell.coord[2])
             middle += f"{self._drawBorder(cell,'within')}{self._drawBorder(cell, 'southeast')}"
             if cell.coord[1] == 0 and cell.coord[0] == self.rows-1: # last cell in 1st column
                 bottom += '  ' # indentation
-            if sum(cell.coord) == self.cols + self.rows - 2: # last cell
-                bottom += f'{self._drawCorner(cell.coord[0]+1, cell.coord[1], cell.lvl)}\n'
+            if sum(cell.coord[:-1]) == self.cols + self.rows - 2: # last cell
+                bottom += f'{self._drawCorner(cell.coord[0]+1, cell.coord[1], cell.coord[2])}\n'
         else: # if is pointy
             if cell.coord[1] == 0: # 1st column
-                top += f'  {self._drawCorner(cell.coord[0], cell.coord[1], cell.lvl)}'
+                top += f'  {self._drawCorner(cell.coord[0], cell.coord[1], cell.coord[2])}'
                 middle += f" {self._drawBorder(cell, 'northwest')}"
             if cell.coord[0] == self.rows-1: # last row
-                bottom += self._drawCorner(cell.coord[0]+1, cell.coord[1]-1, cell.lvl)
+                bottom += self._drawCorner(cell.coord[0]+1, cell.coord[1]-1, cell.coord[2])
                 bottom += self._drawBorder(cell, 'south')
             middle += f"{self._drawBorder(cell,'within')}{self._drawBorder(cell, 'northeast')}"
-            if sum(cell.coord) == self.cols + self.rows - 2: # last cell
-                bottom += f'{self._drawCorner(cell.coord[0]+1, cell.coord[1]+1, cell.lvl)}\n'
+            if sum(cell.coord[:-1]) == self.cols + self.rows - 2: # last cell
+                bottom += f'{self._drawCorner(cell.coord[0]+1, cell.coord[1]+1, cell.coord[2])}\n'
         return [top, middle, bottom]
 
     def _drawCorner(self, y: int, x: int, z = 0) -> str: # given two diagonal cells
@@ -344,16 +343,20 @@ class HexGrid(Grid): # sigma maze
         for direction in hex_cell.neighbors.keys():
             neighbor = hex_cell.neighbors[direction]
             if neighbor and hex_cell.isLinked(neighbor):
+                # proofreading
+                if hex_cell.coord == (2,1,0):
+                    print('fuck')
+                # end proofreading
                 triangle = self.__getTriangle(hex_cell, direction, triGrid)
                 triangle.link(triangle.neighbors[direction])
             elif hex_cell.isLinked(None): # hex cell links to none, hence is masked
                 triangle = self.__getTriangle(hex_cell, 'up', triGrid) # get corresp triangle
-                self.__maskUp(triGrid, False, triangle.coord[0], triangle.coord[1], triangle.lvl)
+                self.__maskUp(triGrid, False, triangle.coord[0], triangle.coord[1], triangle.coord[2])
         return triGrid
 
     # returns corresponding triangular cell according to direction of hexagonal cell
     def __getTriangle(self, hex_cell: Cell, direction: str, triGrid: TriGrid) -> Cell:
-        row, col = hex_cell.coord; lvl = hex_cell.lvl
+        row, col, lvl = hex_cell.coord
         def y_adjust(col, direction):
             adjust = 0
             if direction[0] == 's': adjust += 1
@@ -364,7 +367,7 @@ class HexGrid(Grid): # sigma maze
             if len(direction) == 5: adjust += 1
             if direction[-4:] == 'east': adjust += 2
             return adjust
-        return triGrid.getCell(2 * row + y_adjust(col, direction), x_adjust(direction), lvl)
+        return triGrid.getCell(2*row+y_adjust(col,direction), 3*col+x_adjust(direction), lvl)
     
     # create hexagonal grid from triangular grid
     def __hexify(self, triGrid: TriGrid):

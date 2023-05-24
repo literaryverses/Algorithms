@@ -43,24 +43,75 @@ def binaryTree(grid, skew = ''):
             continue
         neighbor = neighbors[index]
         cell.link(neighbor)
+    for lvl in range(grid.lvls): # connects mazes on z-axis
+        if lvl != grid.lvls-1 and grid.lvls > 1:
+            cell = grid.getCell(randint(0,grid.rows-1),
+                                randint(0,grid.cols-1), lvl)
+            cell.link(cell.neighbors['up'])
     return grid
 
 '''
-Eller's:
+Eller's: links adjacent neighing cells for each set assigned per row. A
+combination of sidewinder (descending per row) and Kruskal's (assigning sets)
 '''
+
 def ellers(grid):
-    return
+    set_for_cell = {} # maps cells to corresponding set identifiers
+    cells_in_set = {} # maps set identifiers to cells belonging to those sets       
+    next_set = 0 # starting set
 
-from objects import Grid
-grid = Grid(10,10)
-print(ellers(grid))
+    def record(cell): # records a given set for the given cell
+        nonlocal next_set
+        set_for_cell[cell.coord[1]] = next_set
+        if not cells_in_set.get(next_set):
+            cells_in_set[next_set] = set()
+        cells_in_set[next_set].add(cell)
 
+    def set_for(cell): # checks to see if cell belongs to a set and returns set
+        if not set_for_cell.get(cell.coord[1]):
+            nonlocal next_set
+            record(cell)
+            next_set += 1
+        return set_for_cell[cell.coord[1]]
 
+    def merge(winner, loser): # moves all cells from loser set to winner set
+        for cell in cells_in_set[loser]:
+            set_for_cell[cell.coord[1]] = winner
+        cells_in_set[winner] = cells_in_set[winner].union(cells_in_set[loser])
+        cells_in_set.pop(loser)
+    
+    for r,row in enumerate(grid.each_row()):
+        for cell in row:
+            if not cell.neighbors['west']:
+                continue # skip most western cell in row
+            prior_set = set_for(cell.neighbors['west'])
+            cell_set = set_for(cell) # assign cell to set
+            should_link = cell_set != prior_set and \
+                (cell.coord[0] == grid.rows-1 or random() < 1/3)
+            if should_link: # merge neighbors in row
+                cell.link(cell.neighbors['west'])
+                merge(set_for_cell[cell.coord[1]-1], set_for_cell[cell.coord[1]])
+        set_for_cell.clear()
+        if (r+1)%grid.rows: # merge neighbors to next row
+            for i,cells in cells_in_set.items():
+                cell = cells.pop()
+                cell.link(cell.neighbors['south'])
+                cells_in_set[i] = {cell.neighbors['south']}
+                set_for_cell[cell.coord[1]] = i
+        else:
+            cells_in_set.clear()
+    
+    for lvl in range(grid.lvls): # connects mazes on z-axis
+        if lvl != grid.lvls-1 and grid.lvls > 1:
+            cell = grid.getCell(randint(0,grid.rows-1),
+                                randint(0,grid.cols-1), lvl)
+            cell.link(cell.neighbors['up'])
+    return grid
 
 '''
-Growing Tree: implements both simplified and true Prim's algorithms proport
+Growing Tree: implements both simplified and true Prim's algorithms
 proportionally based on input from 0 (random selection, Prim's) to 1 (last
-selection, recursive backtracking). The Default is set to 0.5, meaning the 
+selection, recursive backtracking). The Default is set to 0.5, meaning the
 two options are equiprobable.
 '''
 def growingTree(grid, slider = 0.5):
@@ -127,8 +178,8 @@ def kruskals(grid):
         for cell in losers:
             cells_in_set[winner].add(cell)
             set_for_cell[cell] = winner
-        cells_in_set.pop(loser)  
-
+        cells_in_set.pop(loser)
+     
     for i,cell in enumerate(grid.each_cell()):
         set_for_cell[cell] = i # assign each cell to own set
         cells_in_set[i] = {cell}
@@ -203,10 +254,51 @@ def recursive_backtracker(grid):
     return grid
 
 '''
-Recursive division:
+Recursive division: treats the maze as a fractal by adding walls recursively
 '''
 def recursive_division(grid):
-    return
+    def divide(row, col, lvl, length, width):
+        if length <= 1 or width <= 1:
+            return
+        if length > width:
+            divide_y(row, col, lvl, length, width)
+        else:
+            divide_x(row, col, lvl, length, width)\
+
+    def divide_y(row, col, lvl, length, width): # divide horizontally
+        divide_south_of = randint(0,length-2)
+        passage_at = randint(0,width-1)
+        for x in range(width):
+            if x == passage_at:
+                continue
+            cell = grid.getCell(row+divide_south_of, col+x, lvl)
+            cell.unlink(cell.neighbors['south'])
+        divide(row, col, lvl, divide_south_of+1, width)
+        divide(row+divide_south_of+1, col, lvl, length-divide_south_of-1, width)
+
+    def divide_x(row, col, lvl, length, width): # divide vertically
+        divide_east_of = randint(0,width-2)
+        passage_at = randint(0,length-1)
+        for y in range(length):
+            if y == passage_at:
+                continue
+            cell = grid.getCell(row+y, col+divide_east_of, lvl)
+            cell.unlink(cell.neighbors['east'])
+        divide(row, col, lvl, length, divide_east_of+1)
+        divide(row, col+divide_east_of+1, lvl, length, width-divide_east_of-1)
+
+    for cell in grid.each_cell(): # unlinking every cell
+        for neighbor in cell.getNeighbors():
+            if neighbor != cell.neighbors.get('up') and\
+                neighbor != cell.neighbors.get('down'):
+                cell.link(neighbor)
+    for lvl in range(grid.lvls): # connects mazes on z-axis
+        divide(0,0,lvl, grid.rows, grid.cols)
+        if lvl != grid.lvls-1 and grid.lvls > 1:
+            cell = grid.getCell(randint(0,grid.rows-1),
+                                randint(0,grid.cols-1), lvl)
+            cell.link(cell.neighbors['up'])
+    return grid
 
 '''
 Sidewinder: decides to destroy the right wall or not for every cell based
@@ -237,6 +329,11 @@ def sidewinder(grid): # sidewinder algo
             else:
                 easterner = cell.neighbors.get('east')
                 cell.link(easterner)
+    for lvl in range(grid.lvls): # connects mazes on z-axis
+        if lvl != grid.lvls-1 and grid.lvls > 1:
+            cell = grid.getCell(randint(0,grid.rows-1),
+                                randint(0,grid.cols-1), lvl)
+            cell.link(cell.neighbors['up'])
     return grid
 
 '''
