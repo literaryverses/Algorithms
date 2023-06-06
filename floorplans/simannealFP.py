@@ -2,7 +2,7 @@
 # See D. F. Wong and C. L. Liu, Floorplan Design of VLSI Circuits, Algdorithmica 4 (1989), 263 - 291 for specifics on the algorithm
 
 import expandFP, orientFP, math
-from random import randint
+from random import randint, choice
 from copy import deepcopy
 
 class Expression:
@@ -35,14 +35,13 @@ def move(exp_state, m):
     operand = randint(0, len(exp_state.operands)-1) # select random operand
 
     if m == 1: # swap two adjacent operands
-        while(m-1==0):
-            m = randint(0,2) # set left (-1) or right (+1)        
+        shift = choice([-1, 1]) # set left (-1) or right (+1)        
         if operand == 0: 
-            m = 2
+            shift = 2
         elif operand == len(exp_state.operands)-1: 
-            m = 0
+            shift = 0
 
-        exp_state.switch(exp_state.operands[operand], exp_state.operands[operand + m-1], False)
+        exp_state.switch(exp_state.operands[operand], exp_state.operands[operand + shift], False)
     elif m == 2: # complement a chain of nonzero length
         chain_start = [operators[0]]
         chain_max = len(operators)
@@ -80,7 +79,8 @@ def move(exp_state, m):
 
             if (operatorI+m in exp_state.operands): # operator next to operand?
                 operand = exp_state.operands.index(operatorI+m)
-            else: continue
+            else: 
+                continue
             operandI = exp_state.operands[operand]
             
             if exp_state.rpe[operatorI+2*m] == exp_state.rpe[operatorI]: # operator not adjacent to same type?
