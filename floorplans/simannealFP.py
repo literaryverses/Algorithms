@@ -40,8 +40,8 @@ def move(exp_state, m):
             shift = 2
         elif operand == len(exp_state.operands)-1: 
             shift = 0
-
         exp_state.switch(exp_state.operands[operand], exp_state.operands[operand + shift], False)
+    
     elif m == 2: # complement a chain of nonzero length
         chain_start = [operators[0]]
         chain_max = len(operators)
@@ -52,7 +52,8 @@ def move(exp_state, m):
         chain = chain_start[randint(0, len(chain_start)-1)]
 
         for i in range(chain, chain_max, 1):        
-            if i > len(exp_state.rpe): break
+            if i > len(exp_state.rpe): 
+                break
             elif exp_state.rpe[i] == 'h':
                 exp_state.rpe[i] = 'v'
                 exp_state.v.append(i)
@@ -61,7 +62,8 @@ def move(exp_state, m):
                 exp_state.rpe[i] = 'h'
                 exp_state.h.append(i)
                 exp_state.v.pop(exp_state.v.index(i))
-            else: break
+            else: 
+                break
     else: # m == 3 # swap two adjacent operand and operator
         while (True):
             m = randint(1,4)
@@ -73,8 +75,10 @@ def move(exp_state, m):
 
             operator = randint(0, len(operators)-1)
             
-            if operator == 0: m = 1
-            elif operator == len(operators)-1: m = -1
+            if operator == 0: 
+                m = 1
+            elif operator == len(operators)-1:
+                m = -1
             operatorI = operators[operator]
 
             if (operatorI+m in exp_state.operands): # operator next to operand?

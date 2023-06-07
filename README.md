@@ -5,6 +5,7 @@ A collection of personal projects to explore some algorithms in python. Within e
 1. [Sorting](#sorting)
 2. [Maze](#maze)
 3. [Floorplans](#floorplans)
+4. [Color](#color)
 
 
 ## Sorting <a name="sorting"></a>
@@ -18,7 +19,7 @@ Insertion sort partitions an array and then inserts elements from the unsorted s
 
 
 ## Maze <a name="maze"></a>
-Algorithms that work with mazes: automatic generation and pathfinding
+Algorithms that work with mazes: automatic generation and (eventually) pathfinding
 
 ### alphabet.py
 Takes inputs from a string to generate a template of an orthogonal maze with words within them.
@@ -27,7 +28,7 @@ Takes inputs from a string to generate a template of an orthogonal maze with wor
 A variety of algorithms that randomly and automatically generate mazes
 
 ### objects.py
-Creates data structures via cell and grid classes to serve as the foundation of the maze.
+Creates data structures via cell and grid classes to serve as the foundation of several types of mazes such as orthogonal (4-sided cells), delta (3-sided cells), and sigma (6-sided cells). Other features include masking (selectively removing a cell from being involved with a maze), braiding (preventing mazes from having dead ends), and stacking (building adding multiple layers on top of a maze)
 
 
 ## Floorplans <a name="floorplans"></a>
@@ -50,3 +51,15 @@ Slicing floorplans can be represented by Polish Expressions (postfix notation). 
 
 ### orientsFP.py
 Implements Stockmeyer's polynomial-time algorithm for finding optimal orientations for slicing floorplans.  Needs three inputs: a normalized Polish Expression representing the floorplan, a string of dimensions represented as '(height, width)...' and non-decreasing cost function ψ that uses h and w (representing height and width respectively) as parameters.
+
+### simannealFP.py
+Implements simulated annealing to generate optimal floorplans given a series of dimensions expressed as a Polish Expression through a stochastic process. 
+
+
+## Color <a name="color"></a>
+Algorithms involved with color. Primarily uses RGB to represent color.
+
+## conversion.py
+Converts between color representations into other formats of different color models.
+
+## conversion.py
