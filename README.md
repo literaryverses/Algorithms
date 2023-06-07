@@ -62,4 +62,5 @@ Algorithms involved with color. Primarily uses RGB to represent color.
 ## conversion.py
 Converts between color representations into other formats of different color models.
 
-## conversion.py
+## operations.py
+Takes a rgb input and returns several color schemes
