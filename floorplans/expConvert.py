@@ -12,14 +12,12 @@ def isOperator(op): # checks if op is operator
     return op in mathOP or op in boolOP
 
 def isPreceding(op1, op2): # checks if op2 precedes op1
-    if op1 in mathOP and op2 in mathOP:
-        if mathOP[op1] >= mathOP[op2]:
-            return True
-        return False
-    if op1 in boolOP and op2 in boolOP:
-        if boolOP[op1] >= boolOP[op2]:
-            return True
-        return False
+    types = [mathOP, boolOP]
+    for typeOP in types:
+        if op1 in typeOP and op2 in typeOP:
+            if typeOP[op1] >= typeOP[op2]:
+                return True
+            return False
     raise TypeError('Operators do not match')
 
 def infixFormat(infix: str): # converts any infix input into a list
@@ -109,7 +107,7 @@ def pkrAlgo(infix): # PKR algo: infix -> postfix
             if len(stack) > 1 and isOperator(op := stack[-2:-1][0]):
                 if isPreceding(e, op) and op != '(':
                     queue.append(stack.pop(-2))
-        else: #operand
+        else: # operand
             queue.append(stack.pop())
     while(stack):
         queue.append(stack.pop())
