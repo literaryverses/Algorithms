@@ -45,7 +45,7 @@ def bindToPE(pe, dimStr): # binds dimensions to rectangles set by pe
     return rects
 
 # finds the optimal orientation using eq as a cost function
-def evaluate(list3, eq, cut, p):
+def evaluate(list3, eq, cut, λ):
     evaluateList = []
     areaList = []
     for i in range(0, len(list3), 1):
@@ -93,12 +93,13 @@ def translate(pe, rects, eq, p):
 '''
 pe = normalized Polish Expession representing floorplan
 dimStr = string of dimensions in (height, width) format
-eq = non-decreasing function ψ using h, w, and p as parameters
+eq = non-decreasing function ψ using h, w, and λ 
+(user-specified parameter) as parameters
 '''
-def orientFP(pe: str, dimStr: str, eq: str, p: int, print_to_console = False):
+def orientFP(pe: str, dimStr: str, eq: str, λ: int, print_to_console = False):
     pe = pe.split()
     rects = bindToPE(pe, dimStr)
-    envelopingRect, rects = translate(pe, rects, eq, p)
+    envelopingRect, rects = translate(pe, rects, eq, λ)
 
     if print_to_console:
         print("\nOrientations:")
