@@ -1,10 +1,10 @@
-# Using simulated annealing to generate slicing floorplans
+# Using simulated annealing to find the optimal slicing floorplan
 # See D. F. Wong and C. L. Liu, Floorplan Design of VLSI Circuits, Algdorithmica 4 (1989), 263 - 291 for specifics on the algorithm
 
 import math
 from expandFP import isRoot
-from orientFP import bindToPE, translate
-from random import randint, randrange, choice, sample
+from orientFP import bindToPE, translate, orientFP
+from random import randint, randrange, choice, sample, random
 from copy import deepcopy
 
 class Expression:
@@ -30,8 +30,11 @@ class Expression:
             exp = deepcopy(self.pe)
         exp[j], exp[i] = exp[i], exp[j]
         return exp
+    
+    def getPE(self) -> str:
+        return ' '.join(self.pe)
 
-def move(exp_state, m): # move from one state to another
+def move(exp_state, m = randint(1,3)): # move from one state to another
     operators = exp_state.h + exp_state.v
     operators.sort()
     shift = choice([-1, 1]) # set left (-1) or right (+1)
@@ -86,57 +89,72 @@ def isNormalized(pe: list) -> bool: # checks if PE is normalized (no consecutive
     return True
 
 def balloting_property(pe: list) -> bool: # checks if PE satisfies balloting property (operands > operators)
-    operator_count = operand_count = 0
-    for char in pe:
+    operator_count = 0
+    for i,char in enumerate(pe):
         if isRoot(char):
             operator_count += 1
-        else:
-            operand_count += 1
-        if operand_count <= operator_count:
-            return False
+            if 2 * operator_count > i:
+                return False
     return True
 
-def cost(exp_state, λ): # determines cost of new state
-    eq = '(h*w)+p*(2*h+2*w)' # cost function
-    h, w = translate(' '.join(exp_state.pe), exp_state.rects.copy(), eq, λ)[0] # height and width
+def cost(exp_state, eq, λ): # determines cost of new state
+    h, w = translate(exp_state.getPE(), exp_state.rects.copy(), eq, λ)[0] # height and width
     return eval(eq)
 
-'''
-p = cooling ratio
-e = minimum temperature
-k = limits the moves tried
-k = number of iterations (limits runtime)
-λ = user-specified parameter for cost function - default is 0
-'''
-def simulatedAnnealing(exp, p, e, r, k, λ = 0): # simulated annealing algo
-    best = exp_state = exp # initial state
-    mt = uphill = 0
-    n = k*len(best.operands)
-    t = 1 #4406.6/math.log(p) #diffAvg/math.log(p) proofreading
-    while (True):
-        mt = uphill = reject = 0
-        while (True):
-            new_state = move(deepcopy(exp_state), randint(1,3))
-            mt +=1
-            diffE = cost(new_state, λ) - cost(exp_state, λ)
-            if (diffE <= 0 or p < math.pow(math.e, -diffE/t)):
-                if (diffE > 0): uphill += 1
-                exp_state = new_state
-                if cost(exp_state, λ) < cost(best, λ): 
-                    best = exp_state
-            else:  reject += 1
-            if (uphill > n or mt > 2*n): break
-        t *= r #reduce temperature
-        if (reject/mt > 0.95 or t < e): break
-        #print(cost(best))
-    return best
+def get_init_temp(exp_state, p, λ): # calculates initial temperature
+    init_temp_arr = []
+    oldCost = cost(exp_state, λ)
+    for _ in range(50): # calculate avg from uphill moves
+        newCost = cost(move(exp_state), λ)
+        if newCost > oldCost:
+            init_temp_arr.append(newCost-oldCost)
+        oldCost = newCost
+    try:
+        diffAvg = sum(init_temp_arr)//len(init_temp_arr)
+    except ZeroDivisionError:
+        print('Given expression is optimal enough')
+    return -diffAvg/math.log(p)
 
-#-main------
-r = 0.85 # between 
-k = 5 # between 5 - 10, moves per temp
-p = 0.5 # probability comparison
-e = 0.001 # when temp is too low
-λ = 0 # user-specified parameter
+def simulatedAnnealing(exp, p, e, r, k, eq = '(h*w)+λ*(2*h+2*w)', λ = 0): # simulated annealing algo
+    best_state = exp_state = exp # initial state
+    mt = uphill = 0
+    n = k*len(best_state.operands)
+    t = get_init_temp(deepcopy(exp), p, λ)
+    while ((reject/mt <= 0.95) and (t >= e)):
+        mt = uphill = reject = 0
+        while (uphill <= n) and (mt <= 2*n):
+            new_state = move(deepcopy(exp_state))
+            mt +=1 # count total moves
+            oldCost = cost(exp_state, eq, λ)
+            diffC = cost(new_state, eq, λ) - oldCost # calculate cost difference
+            if (diffC <= 0) or (random() < math.pow(math.e, -diffC/t)):
+                if (diffC > 0): 
+                    uphill += 1
+                exp_state = new_state
+                if oldCost < cost(best_state, eq, λ): 
+                    best_state = exp_state # optimal state
+            else:  
+                reject += 1
+        t *= r #reduce temperature
+    return best_state
+
+def optimalFP(pe: str, dimStr: str, print_to_console = False):
+    exp = Expression(pe, dimStr) # create expression object
+
+    # MODIFIABLE VARIABLES
+    p = 0.85 # initial probability for deciding starting temp
+    e = 0.001 # minimum temperature until annealing is performed
+    r = 0.85 # temperature reducing factor, 0.85 has 'very satisfactory results'
+    k = 5 # number of iterations per temp, keep between 5 - 10
+    eq = '(h*w)+λ*(2*h+2*w)' # cost function; h = height and w = width
+    λ = 0 # user-specified parameter for cost function, default = 0
+
+    best = simulatedAnnealing(exp, p, e, r, k, eq, λ)
+    new_pe = best.getPE()
+    if print_to_console:
+        print(f'New Polish Expression: {new_pe}')
+    (roomHeight, roomWidth), best.rects = orientFP(new_pe, dimStr, eq, λ, print_to_console)
+    return new_pe, (roomHeight, roomWidth), best
 
 '''
 pe = input("Input a reverse Polish expression >>")
@@ -145,15 +163,8 @@ exp = Expression(pe, rectangles)
 simulatedAnnealing(exp, p, e, r, k)
 '''
 #pe = 'f g j h c v h a v b h d h e v'
-pe = '16 0 10 30 43 33 v 34 h 15 h 6 9 h 5 41 11 v h 25 v 13 v 46 45 v h 3 v 29 v h v h v 31 36 1 12 h 49 h 35 28 v 37 v 17 42 8 h 39 h v 27 v 23 v 44 v h v h 2 h 7 h v h 38 h 20 h v h 32 40 h 47 h 48 26 24 h v h 21 h 14 h v 18 22 v 19 v h 4 v'
+pe = 'f g j + c * + a * b + d + e *'
+#pe = '16 0 10 30 43 33 v 34 h 15 h 6 9 h 5 41 11 v h 25 v 13 v 46 45 v h 3 v 29 v h v h v 31 36 1 12 h 49 h 35 28 v 37 v 17 42 8 h 39 h v 27 v 23 v 44 v h v h 2 h 7 h v h 38 h 20 h v h 32 40 h 47 h 48 26 24 h v h 21 h 14 h v 18 22 v 19 v h 4 v'
 
-#rectangles = '(4, 6), (4, 3), (4, 1), (2, 3), (1, 1), (1, 2), (3, 3), (3, 4)'
-rectangles = "(9, 9), (1, 9), (6, 9), (4, 9), (7, 9), (3, 10), (1, 10), (2, 10), (1, 18), (2, 18), (8, 5), (1, 8), (9, 8), (9, 3), (9, 5), (9, 2), (8, 2), (7, 2), (8, 3), (8, 4), (1, 7), (5, 7), (6, 7), (4, 7), (8, 6), (8, 7), (8, 8), (6, 4), (6, 2), (1, 6), (6, 3), (6, 5), (6, 6), (7, 7), (7, 3), (1, 5), (2, 5), (3, 5), (4, 5), (3, 4), (2, 4), (1, 4), (4, 4), (5, 5), (2, 3), (2, 2), (3, 3), (3, 1), (2, 1), (1, 1)"
-exp = Expression(pe, rectangles)
-best = simulatedAnnealing(exp, 0, e, r, k)
-
-for i in range(0, 10, 1):
-    print(f'{i}: ')
-    pe = ' '.join(best.pe)
-    print(pe)
-    #print(orientFP(pe, best.rects))
+rectangles = '(4, 6), (4, 3), (4, 1), (2, 3), (1, 1), (1, 2), (3, 3), (3, 4)'
+#rectangles = "(9, 9), (1, 9), (6, 9), (4, 9), (7, 9), (3, 10), (1, 10), (2, 10), (1, 18), (2, 18), (8, 5), (1, 8), (9, 8), (9, 3), (9, 5), (9, 2), (8, 2), (7, 2), (8, 3), (8, 4), (1, 7), (5, 7), (6, 7), (4, 7), (8, 6), (8, 7), (8, 8), (6, 4), (6, 2), (1, 6), (6, 3), (6, 5), (6, 6), (7, 7), (7, 3), (1, 5), (2, 5), (3, 5), (4, 5), (3, 4), (2, 4), (1, 4), (4, 4), (5, 5), (2, 3), (2, 2), (3, 3), (3, 1), (2, 1), (1, 1)"
