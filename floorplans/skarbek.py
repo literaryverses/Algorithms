@@ -1,14 +1,13 @@
 # Provides a binary tree in array representation via Skarbek's algorithm
 
-import copy
-
 class ArrayTree:
     def __init__(self, total, index):
-        self.l = self.r = [None]*total
+        self.l = [None]*total
+        self.r = [None]*total
         self.order = index
     def copy(self, other):
-        self.l = copy.deepcopy(other.l)
-        self.r = copy.deepcopy(other.r)
+        self.l = [x for x in other.l if x != None]
+        self.r = [x for x in other.r if x != None]
     def print(self):
         print(f'Iteration {self.order}')
         printing = self.l[:-1] + self.r
@@ -16,7 +15,7 @@ class ArrayTree:
             if i==len(printing)/2:
                 print()
             print(x, end = ' ')
-    
+
 def visitTree(bTree, n):
     # P3 Find j
     j = 1
@@ -71,7 +70,7 @@ def algorithm(n):
             bTree.copy(doneTree)
     return bForest
 
-def skarbek(n, print_to_console): # n = # of internal nodes
+def skarbek(n, print_to_console = False): # n = # of internal nodes
     ARList = algorithm(int(n))
     if print_to_console:
         for tree in ARList:
