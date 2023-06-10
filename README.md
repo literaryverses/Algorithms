@@ -59,8 +59,8 @@ Implements simulated annealing to generate optimal floorplans given a series of 
 ## Color <a name="color"></a>
 Algorithms involved with color. Primarily uses RGB to represent color.
 
-## conversion.py
+### conversion.py
 Converts between color representations into other formats of different color models.
 
-## operations.py
+### operations.py
 Takes a rgb input and returns several color schemes
