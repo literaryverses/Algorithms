@@ -24,6 +24,7 @@ def reGenerate(operand, operator): # recursively generate PE
             return f'{reGenerate(operand+1, operator-1)} \
             {operand} \
             {operatorMake(randint(0,1))}'
+    pass
 
 def normalize(pe): # converts PE to normalized PE
     for i, x in enumerate(peList := pe.split()):
@@ -45,7 +46,7 @@ def setRectangle(node, newRect, rects): # updates node with new rectangle
 def fitRectangle(root, rects): # fits the dimensions of adjacent rectangles
     if not isinstance(root, Node):
         return
-    operator = root.data[1]
+    operator = root.data[0]
     lRect = getRectangle(root.lchild, rects)
     rRect = getRectangle(root.rchild, rects)
     if operator == '+': # horizontal slice
@@ -65,7 +66,7 @@ def fitRectangle(root, rects): # fits the dimensions of adjacent rectangles
     fitRectangle(root.lchild, rects)
     fitRectangle(root.rchild, rects)
 
- # determines the dimensions of the rectangles via postorder traversal
+# determines the dimensions of the rectangles via postorder traversal
 def rectMake(pe):
     i = 0
     rects = dict()
@@ -91,7 +92,7 @@ def rectMake(pe):
 def polishExp(n: int): # generates PE from given # of slices
     return reGenerate(0, n) # starts off with 0 operands
 
-def createFP(total, print_to_console: bool): # returns random PE and FP given # of slices
+def createFP(total, print_to_console = False): # returns random PE and FP given # of slices
     pe = normalize(polishExp(int(total)))
     rects = rectMake(pe)
 
