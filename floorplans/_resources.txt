@@ -7,3 +7,5 @@ Stockmeyer, L. (1983). Optimal orientations of cells in slicing floorplan design
 R. Rastogi, P. Mondal and K. Agarwal, "An exhaustive review for infix to postfix conversion with applications and benefits," 2015 2nd International Conference on Computing for Sustainable Global Development (INDIACom), 2015, pp. 95-100.
 
 Wang, L.-T., Y.-W. Chang, and K.-T. (Tim) Cheng, 2009, Electronic Design Automation - Synthesis, Verification, and Test: San Francisco, Elsevier.
+
+Wong, D. F., and C. L. Liu, 1989, Floorplan design of VLSI circuits: Algorithmica, v. 4, no. 1-4, p. 263–291, doi:10.1007/BF01553890.
