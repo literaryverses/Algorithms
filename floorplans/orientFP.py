@@ -96,7 +96,7 @@ dimStr = string of dimensions in (height, width) format
 eq = non-decreasing function ψ using h, w, and λ 
 (user-specified parameter) as parameters
 '''
-def orientFP(pe: str, dimStr: str, eq: str, λ: int, print_to_console = False):
+def orientFP(pe: str, dimStr: str, eq = '(h*w)+λ*(2*h+2*w)', λ = 0, print_to_console = False):
     pe = pe.split()
     rects = bindToPE(pe, dimStr)
     envelopingRect, rects = translate(pe, rects, eq, λ)
