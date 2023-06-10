@@ -108,15 +108,3 @@ def orientFP(pe: str, dimStr: str, eq: str, p: int, print_to_console = False):
         print(f'Area: {envelopingRect[0]*envelopingRect[1]}\n') # given as height x width
 
     return envelopingRect, rects
-
-orientFP('1 2 * 3 + 4 *', '(1,1) (1, 2) (3, 1) (2,3)', '(h*w)+p*(2*h+2*w)', 0, True)
-'''
-Orientations:
-Rectangle 1: 1 X 1
-Rectangle 2: 1 X 2
-Rectangle 3: 1 X 3
-Rectangle 4: 2 X 3
-
-Enveloping rectangle: 2 X 6
-
-Area: 12'''

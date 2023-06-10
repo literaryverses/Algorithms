@@ -6,8 +6,8 @@ class ArrayTree:
         self.r = [None]*total
         self.order = index
     def copy(self, other):
-        self.l = [x for x in other.l if x != None]
-        self.r = [x for x in other.r if x != None]
+        self.l = [x for x in other.l]
+        self.r = [x for x in other.r]
     def print(self):
         print(f'Iteration {self.order}')
         printing = self.l[:-1] + self.r
