@@ -49,12 +49,12 @@ def enum(n, order): # create binary set of trees
                 treeList.append(root)
     return treeList
 
-def internalAR(n: int, print_to_console: bool): # n = number of internal nodes
+def internalAR(n: int, print_to_console = False): # n = number of internal nodes
     tArray = ArrayRepesentation(n)
 
     fn = enum(n,1) # pass in 1 as order first
     if print_to_console:
         for i, tree in enumerate(fn):
             tArray.translate(tree) # convert tree to array representation
-            print(f'Iteration {i}\n{tArray}\n')
+            print(f'Iteration {i+1}\n{tArray}\n')
     return fn
