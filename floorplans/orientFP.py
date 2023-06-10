@@ -34,7 +34,8 @@ def getRotateDims(dimensions): # add in dimensional changes via rotations
             dimensions[i] = [(w, h), (h, w)]
     return dimensions
 
-def bindToPE(pe, rotated_dimensions): # binds dimensions to rectangles set by pe
+def bindToPE(pe, dimStr): # binds dimensions to rectangles set by pe
+    rotated_dimensions = getRotateDims(getDimensions(dimStr))
     rects = dict()
     for i, char in enumerate(filter(lambda x: not isRoot(x), pe)):
         if isRoot(char):
@@ -44,11 +45,11 @@ def bindToPE(pe, rotated_dimensions): # binds dimensions to rectangles set by pe
     return rects
 
 # finds the optimal orientation using eq as a cost function
-def evaluate(list3, eq, c):
+def evaluate(list3, eq, cut, p):
     evaluateList = []
     areaList = []
     for i in range(0, len(list3), 1):
-        h, w = calculate(list3[i][0], list3[i][1], c)
+        h, w = calculate(list3[i][0], list3[i][1], cut)
         evaluateList.append(eval(eq))
         areaList.append((h, w))
     i = evaluateList.index(min(evaluateList))
@@ -65,20 +66,20 @@ def calculate(x, y, operator):
     return height, width
 
 # returns optimal orientations from PE and dimensions
-def translate(pe, rects, eq):
+def translate(pe, rects, eq, p):
     i = 0
     orientations = lambda x: x if isinstance(x, list) else rects[x]
     while (len(pe)>1):
         char = pe[i]
         if isRoot(char):
-            if char == '*':
+            if char == '*': # vertical slice 
                 c = 0
-            else: #char == '+'
+            else: #char == '+' # horizontal slice 
                 c = 1
             rect1 = orientations(key1 := pe.pop(i-2))
             rect2 = orientations(key2 := pe.pop(i-2))
             mergeList = algorithm(rect1, rect2, 0, 0, [], c)
-            dimenList, enveloping = evaluate(mergeList, eq, c)
+            dimenList, enveloping = evaluate(mergeList, eq, c, p)
             if not isinstance(key1, list):
                 rects[key1] = dimenList[0]
             if not isinstance(key2, list):
@@ -92,13 +93,12 @@ def translate(pe, rects, eq):
 '''
 pe = normalized Polish Expession representing floorplan
 dimStr = string of dimensions in (height, width) format
-eq = non-decreasing function ψ using h and w as parameters
+eq = non-decreasing function ψ using h, w, and p as parameters
 '''
-def orientFP(pe: str, dimStr: str, eq: str, print_to_console: bool):
+def orientFP(pe: str, dimStr: str, eq: str, p: int, print_to_console = False):
     pe = pe.split()
-    rotated_dimensions = getRotateDims(getDimensions(dimStr))
-    rects = bindToPE(pe, rotated_dimensions)
-    envelopingRect, rects = translate(pe, rects, eq)
+    rects = bindToPE(pe, dimStr)
+    envelopingRect, rects = translate(pe, rects, eq, p)
 
     if print_to_console:
         print("\nOrientations:")
@@ -108,3 +108,15 @@ def orientFP(pe: str, dimStr: str, eq: str, print_to_console: bool):
         print(f'Area: {envelopingRect[0]*envelopingRect[1]}\n') # given as height x width
 
     return envelopingRect, rects
+
+orientFP('1 2 * 3 + 4 *', '(1,1) (1, 2) (3, 1) (2,3)', '(h*w)+p*(2*h+2*w)', 0, True)
+'''
+Orientations:
+Rectangle 1: 1 X 1
+Rectangle 2: 1 X 2
+Rectangle 3: 1 X 3
+Rectangle 4: 2 X 3
+
+Enveloping rectangle: 2 X 6
+
+Area: 12'''
