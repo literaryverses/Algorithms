@@ -34,7 +34,7 @@ def getRotateDims(dimensions): # add in dimensional changes via rotations
             dimensions[i] = [(w, h), (h, w)]
     return dimensions
 
-def bindToPE(pe, dimStr): # binds dimensions to rectangles set by pe
+def bindToPE(pe: list, dimStr: str): # binds dimensions to rectangles set by pe
     rotated_dimensions = getRotateDims(getDimensions(dimStr))
     rects = dict()
     for i, char in enumerate(filter(lambda x: not isRoot(x), pe)):
@@ -66,7 +66,7 @@ def calculate(x, y, operator):
     return height, width
 
 # returns optimal orientations from PE and dimensions
-def translate(pe, rects, eq, p):
+def translate(pe: list, rects: dict, eq: str, p: int):
     i = 0
     orientations = lambda x: x if isinstance(x, list) else rects[x]
     while (len(pe)>1):
@@ -74,7 +74,7 @@ def translate(pe, rects, eq, p):
         if isRoot(char):
             if char == '*': # vertical slice 
                 c = 0
-            else: #char == '+' # horizontal slice 
+            else: #char == '+', horizontal slice 
                 c = 1
             rect1 = orientations(key1 := pe.pop(i-2))
             rect2 = orientations(key2 := pe.pop(i-2))
@@ -90,22 +90,25 @@ def translate(pe, rects, eq, p):
             i+=1
     return pe.pop().pop(), rects
 
+def print_to_console(h, w, rects): # prints to the console
+    print("\nOrientations:")
+    for rect in rects:
+        print(f'Rectangle {rect}: {rects[rect][0]} X {rects[rect][1]}') # given as height x width
+    print(f'\nEnveloping rectangle: {h} X {w}\n') # given as height x width
+    print(f'Area: {h*w}\n') # given as height x width
+
 '''
 pe = normalized Polish Expession representing floorplan
 dimStr = string of dimensions in (height, width) format
 eq = non-decreasing function ψ using h, w, and λ 
 (user-specified parameter) as parameters
 '''
-def orientFP(pe: str, dimStr: str, eq = '(h*w)+λ*(2*h+2*w)', λ = 0, print_to_console = False):
+def orientFP(pe: str, dimStr: str, eq = '(h*w)+λ*(2*h+2*w)', λ = 0, doPrint = False):
     pe = pe.split()
     rects = bindToPE(pe, dimStr)
     envelopingRect, rects = translate(pe, rects, eq, λ)
 
-    if print_to_console:
-        print("\nOrientations:")
-        for rect in rects:
-            print(f'Rectangle {rect}: {rects[rect][0]} X {rects[rect][1]}') # given as height x width
-        print(f'\nEnveloping rectangle: {envelopingRect[0]} X {envelopingRect[1]}\n') # given as height x width
-        print(f'Area: {envelopingRect[0]*envelopingRect[1]}\n') # given as height x width
+    if doPrint:
+        print_to_console(*envelopingRect, rects)
 
     return envelopingRect, rects

@@ -92,11 +92,11 @@ def rectMake(pe):
 def polishExp(n: int): # generates PE from given # of slices
     return reGenerate(0, n) # starts off with 0 operands
 
-def createFP(total, print_to_console = False): # returns random PE and FP given # of slices
+def createFP(total, doPrint = False): # returns random PE and FP given # of slices
     pe = normalize(polishExp(int(total)))
     rects = rectMake(pe)
 
-    if print_to_console:
+    if doPrint:
         print(f'Polish Expression: \n {pe}')
         [print(f'Rectangle {key}:\n\t{value}') for key, value in rects.items()]
     return pe, rects

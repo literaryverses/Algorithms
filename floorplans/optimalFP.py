@@ -3,8 +3,8 @@
 
 import math
 from expandFP import isRoot
-from orientFP import bindToPE, translate, orientFP
-from random import randint, randrange, choice, sample, random
+from orientFP import bindToPE, translate, print_to_console
+from random import randint, randrange, choice, random
 from copy import deepcopy
 
 class Expression:
@@ -12,9 +12,9 @@ class Expression:
         self.h = [] # horizontal slice indices
         self.v = [] # vertical slice indices
         self.operands = [] # operand indices
-        self.rects = bindToPE(pe, dimensions) # dimensions
+        self.pe = pe.split() # Polish Expression as a list
+        self.rects = bindToPE(self.pe, dimensions) # dimensionsclear
 
-        self.pe = pe.split()
         for i, char in enumerate(self.pe):
             if isRoot(char):
                 if char == '+':
@@ -24,61 +24,88 @@ class Expression:
             else:
                 self.operands.append(i)
 
-    def switch(self, i: int, j: int, copify: bool) -> list:
-        exp = self.pe
-        if copify == True:
-            exp = deepcopy(self.pe)
-        exp[j], exp[i] = exp[i], exp[j]
-        return exp
+    def switch(self, i: int, j: int):
+        self.pe[j], self.pe[i] = self.pe[i], self.pe[j]
+
+    def cleanup(self, operator: int, shift: int):
+        self.operands.append(operator)
+        self.operands.remove(operator+shift)
+        if operator in self.h:
+            self.h.append(operator+shift)
+            self.h.remove(operator)
+        elif operator in self.v:
+            self.v.append(operator+shift)
+            self.v.remove(operator)
     
     def getPE(self) -> str:
         return ' '.join(self.pe)
 
-def move(exp_state, m = randint(1,3)): # move from one state to another
+def chaining(list): # link up consecutive numbers into sublists in a list
+    sublist = []
+    while list:
+        element = list.pop(0)
+        if not sublist or sublist[-1] == element-1:
+            sublist.append(element)
+        else:
+            yield sublist
+            sublist = [element]
+    if sublist: # account for last element
+        yield sublist
+
+
+def move(exp_state): # move from one state to another
+    m = randint(1,3)
     operators = exp_state.h + exp_state.v
     operators.sort()
     shift = choice([-1, 1]) # set left (-1) or right (+1)
 
     if m == 1: # swap two adjacent operands
-        shift = choice([-1, 1]) # set left (-1) or right (+1)
         operand = randrange(len(exp_state.operands)) # select random operand index
         shift = choice([-1, 1]) # set left (-1) or right (+1)
         if operand == 0:
             shift = 1
         elif operand == len(exp_state.operands)-1:
             shift = -1
-        exp_state.switch(exp_state.operands[operand], exp_state.operands[operand + shift], False)
+        exp_state.switch(exp_state.operands[operand], exp_state.operands[operand + shift])
     
     elif m == 2: # complement a chain of nonzero length
-        chain = sample(range(len(operators)), 2) # range in operator indices
-        chain.sort()
-        for i in range(chain[0], chain[1]): # range in PE indices
-            if exp_state.pe[i] == '+': # horizontal slice
-                exp_state.pe[i] = '*'
-                exp_state.v.append(i)
-                exp_state.h.remove(i)
-            elif exp_state.pe[i] == '*': # vertical slice
-                exp_state.pe[i] = '+'
-                exp_state.h.append(i)
-                exp_state.v.remove(i)
+        chain = choice([sublist for sublist in chaining(operators)])
+        for index in chain: # range in PE indices
+            if exp_state.pe[index] == '+': # horizontal slice
+                exp_state.pe[index] = '*'
+                exp_state.v.append(index)
+                exp_state.h.remove(index)
+            elif exp_state.pe[index] == '*': # vertical slice
+                exp_state.pe[index] = '+'
+                exp_state.h.append(index)
+                exp_state.v.remove(index)
             else:
-                raise Exception('Operator was input incorrectly')
+                raise Exception('Operator was input incorrectly in PE')
 
     elif m == 3: # swap two adjacent operand and operator
         trial = -1 # attempt per operator
-        executions = [operator := choice(operators), shift := shift * -1, operators.remove(operator)]
+        getOperator = (lambda l: choice(l))(operators)
+        operator = getOperator
         while (True):
             trial += 1
-            executions[trial]
             if trial == 2: # reset for next operator
+                operators.remove(operator)
                 trial = 0
-                continue
+            elif trial == 1:
+                shift *= -1
+            if trial == 0 and operators:
+                operator = choice(operators)
+            elif not operators: # if there are no operators left
+                break
             if not 0 <= operator + shift < len(exp_state.pe):
                 continue # out of index, jump to next loop
+            if isRoot(exp_state.pe[operator + shift]):
+                continue # points to operator and not operand, jump to next loop                
             new_pe = [char for char in exp_state.pe]
             new_pe[operator], new_pe[operator + shift] = new_pe[operator + shift], new_pe[operator]
             if isNormalized(new_pe) and balloting_property(new_pe):
                 exp_state.pe = new_pe # select if PE is normalized and satisfy balloting property
+                exp_state.cleanup(operator, shift) # attenue lists to match PE
                 break
     return exp_state
 
@@ -98,14 +125,14 @@ def balloting_property(pe: list) -> bool: # checks if PE satisfies balloting pro
     return True
 
 def cost(exp_state, eq, λ): # determines cost of new state
-    h, w = translate(exp_state.getPE(), exp_state.rects.copy(), eq, λ)[0] # height and width
+    h, w = translate([e for e in exp_state.pe], deepcopy(exp_state.rects), eq, λ)[0] # height and width
     return eval(eq)
 
-def get_init_temp(exp_state, p, λ): # calculates initial temperature
+def get_init_temp(exp_state, p, n, eq, λ): # calculates initial temperature
     init_temp_arr = []
-    oldCost = cost(exp_state, λ)
-    for _ in range(50): # calculate avg from uphill moves
-        newCost = cost(move(exp_state), λ)
+    oldCost = cost(exp_state, eq, λ)
+    for _ in range(n): # calculate avg from uphill moves
+        newCost = cost(move(exp_state), eq, λ)
         if newCost > oldCost:
             init_temp_arr.append(newCost-oldCost)
         oldCost = newCost
@@ -117,33 +144,35 @@ def get_init_temp(exp_state, p, λ): # calculates initial temperature
 
 def simulatedAnnealing(exp, p, e, r, k, eq = '(h*w)+λ*(2*h+2*w)', λ = 0): # simulated annealing algo
     best_state = exp_state = exp # initial state
-    mt = uphill = 0
+    mt = uphill = reject = 0
     n = k*len(best_state.operands)
-    t = get_init_temp(deepcopy(exp), p, λ)
-    while ((reject/mt <= 0.95) and (t >= e)):
+    t = get_init_temp(deepcopy(exp), p, n, eq, λ)
+    while (True):
         mt = uphill = reject = 0
         while (uphill <= n) and (mt <= 2*n):
             new_state = move(deepcopy(exp_state))
-            mt +=1 # count total moves
-            oldCost = cost(exp_state, eq, λ)
-            diffC = cost(new_state, eq, λ) - oldCost # calculate cost difference
+            mt += 1 # count total moves
+            newCost = cost(new_state, eq, λ)
+            diffC = newCost - cost(exp_state, eq, λ) # calculate cost difference
             if (diffC <= 0) or (random() < math.pow(math.e, -diffC/t)):
                 if (diffC > 0): 
                     uphill += 1
                 exp_state = new_state
-                if oldCost < cost(best_state, eq, λ): 
+                if newCost < cost(best_state, eq, λ): 
                     best_state = exp_state # optimal state
             else:  
                 reject += 1
         t *= r #reduce temperature
+        if (reject/mt > 0.95) or (t < e): # TODO: add Timeout
+            break
     return best_state
 
-def optimalFP(pe: str, dimStr: str, print_to_console = False):
+def optimalFP(pe: str, dimStr: str, doPrint = False):
     exp = Expression(pe, dimStr) # create expression object
 
     # MODIFIABLE VARIABLES
     p = 0.85 # initial probability for deciding starting temp
-    e = 0.001 # minimum temperature until annealing is performed
+    e = 0.0001 # minimum temperature until annealing is performed
     r = 0.85 # temperature reducing factor, 0.85 has 'very satisfactory results'
     k = 5 # number of iterations per temp, keep between 5 - 10
     eq = '(h*w)+λ*(2*h+2*w)' # cost function; h = height and w = width
@@ -151,20 +180,34 @@ def optimalFP(pe: str, dimStr: str, print_to_console = False):
 
     best = simulatedAnnealing(exp, p, e, r, k, eq, λ)
     new_pe = best.getPE()
-    if print_to_console:
-        print(f'New Polish Expression: {new_pe}')
-    (roomHeight, roomWidth), best.rects = orientFP(new_pe, dimStr, eq, λ, print_to_console)
+    if doPrint:
+        print(f'\nNew Polish Expression: {new_pe}')
+    (roomHeight, roomWidth), best.rects = translate(new_pe.split(), best.rects, eq, λ)
+    print_to_console(roomHeight, roomWidth, best.rects)
+
+    # returns PE (str), enveloping area (int x int), and PE (Expression obj)
     return new_pe, (roomHeight, roomWidth), best
 
-'''
-pe = input("Input a reverse Polish expression >>")
-rectangles = input("input rectangles")
-exp = Expression(pe, rectangles)
-simulatedAnnealing(exp, p, e, r, k)
-'''
-#pe = 'f g j h c v h a v b h d h e v'
-pe = 'f g j + c * + a * b + d + e *'
-#pe = '16 0 10 30 43 33 v 34 h 15 h 6 9 h 5 41 11 v h 25 v 13 v 46 45 v h 3 v 29 v h v h v 31 36 1 12 h 49 h 35 28 v 37 v 17 42 8 h 39 h v 27 v 23 v 44 v h v h 2 h 7 h v h 38 h 20 h v h 32 40 h 47 h 48 26 24 h v h 21 h 14 h v 18 22 v 19 v h 4 v'
 
-rectangles = '(4, 6), (4, 3), (4, 1), (2, 3), (1, 1), (1, 2), (3, 3), (3, 4)'
-#rectangles = "(9, 9), (1, 9), (6, 9), (4, 9), (7, 9), (3, 10), (1, 10), (2, 10), (1, 18), (2, 18), (8, 5), (1, 8), (9, 8), (9, 3), (9, 5), (9, 2), (8, 2), (7, 2), (8, 3), (8, 4), (1, 7), (5, 7), (6, 7), (4, 7), (8, 6), (8, 7), (8, 8), (6, 4), (6, 2), (1, 6), (6, 3), (6, 5), (6, 6), (7, 7), (7, 3), (1, 5), (2, 5), (3, 5), (4, 5), (3, 4), (2, 4), (1, 4), (4, 4), (5, 5), (2, 3), (2, 2), (3, 3), (3, 1), (2, 1), (1, 1)"
+
+# TEST
+pe = 'f g j + c * + a * b + d + e *'
+dimStr = '(4, 6), (4, 3), (4, 1), (2, 3), (1, 1), (1, 2), (3, 3), (3, 4)'
+optimalFP(pe, dimStr, True)
+
+'''
+New Polish Expression: g c * j a * + e * d b + f * +
+
+Orientations:
+Rectangle f: 4 X 6
+Rectangle g: 3 X 4
+Rectangle j: 1 X 4
+Rectangle c: 3 X 2
+Rectangle a: 1 X 1
+Rectangle b: 1 X 2
+Rectangle d: 3 X 3
+Rectangle e: 4 X 3
+
+Enveloping rectangle: 8 X 9
+
+Area: 72'''

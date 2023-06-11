@@ -70,9 +70,9 @@ def algorithm(n):
             bTree.copy(doneTree)
     return bForest
 
-def skarbek(n, print_to_console = False): # n = # of internal nodes
+def skarbek(n, doPrint = False): # n = # of internal nodes
     ARList = algorithm(int(n))
-    if print_to_console:
+    if doPrint:
         for tree in ARList:
             tree.print()
             print('\n')
