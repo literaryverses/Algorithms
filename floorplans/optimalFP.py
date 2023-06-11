@@ -187,27 +187,3 @@ def optimalFP(pe: str, dimStr: str, doPrint = False):
 
     # returns PE (str), enveloping area (int x int), and PE (Expression obj)
     return new_pe, (roomHeight, roomWidth), best
-
-
-
-# TEST
-pe = 'f g j + c * + a * b + d + e *'
-dimStr = '(4, 6), (4, 3), (4, 1), (2, 3), (1, 1), (1, 2), (3, 3), (3, 4)'
-optimalFP(pe, dimStr, True)
-
-'''
-New Polish Expression: g c * j a * + e * d b + f * +
-
-Orientations:
-Rectangle f: 4 X 6
-Rectangle g: 3 X 4
-Rectangle j: 1 X 4
-Rectangle c: 3 X 2
-Rectangle a: 1 X 1
-Rectangle b: 1 X 2
-Rectangle d: 3 X 3
-Rectangle e: 4 X 3
-
-Enveloping rectangle: 8 X 9
-
-Area: 72'''
