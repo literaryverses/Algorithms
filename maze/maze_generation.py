@@ -361,6 +361,55 @@ def sidewinder(grid): # sidewinder algo
     return grid
 
 '''
+Twist and Merge: performs multiple biaised random walks to create paths where
+straight walks are forbidden. The produced regions are then merged into a 
+single connected component. This approach favorizes the turns and increases 
+the number of non-significant walks.
+'''
+def twist_and_merge(grid):
+    isUnvisited = lambda n: True if n in unvisited else False
+
+    def twisty(neighbors, cell, previous): # returns neighbors that are not aligned
+        if (aligned := grid.getOpposite(cell, previous)):
+            neighbors = neighbors.difference({aligned})
+        return neighbors
+    
+    def biased_random_walk(unvisited, cell): # create regions via random walk
+        previous = cell
+        region = {cell}
+        while (neighbors := twisty(set(filter(isUnvisited, cell.getNeighbors())),
+                                   cell, previous)):
+            next = neighbors.pop()
+            cell.link(next)
+            region.add(next)
+            unvisited.remove(next)
+            previous = cell
+            cell = next
+        return region
+
+    regions = []
+    unvisited = set(grid.each_cell())
+
+    while unvisited: # twist mode
+        cell = unvisited.pop()
+        regions.append(biased_random_walk(unvisited, cell))
+    
+    find_index = lambda n, i, l: i if n in l[i] else 0
+    while len(regions) > 1: # merge mode
+        cell = regions[0].pop()
+        for neighbor in cell.getNeighbors():
+            if len(regions) == 1:
+                break
+            for i in range(1, len(regions)):
+                i = find_index(neighbor, i, regions)
+                if i:
+                    cell.link(neighbor) # link cell to neighbor
+                    # absorb neighbor's region
+                    regions[0] = regions[0].union(regions.pop(i))
+                    break
+    return grid
+
+'''
 Wilson's: draws multiple paths from unvisited cells to a visited one until
 there are no more unvisited cells.
 '''

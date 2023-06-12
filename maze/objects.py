@@ -2,8 +2,8 @@ from random import randint, random, shuffle, choice
 
 '''
 NOTES:
--binary trees, sidewinder, recursive_backtracking, ellers and kruskals are for orthogonal grids only
--do not use the above algos for masking
+-binary trees, sidewinder, recursive_backtracking, ellers, twist_and_turn, and kruskals are for orthogonal grids only
+-do not use the following algos for masking
 '''
 
 class Cell:
@@ -36,7 +36,7 @@ class Cell:
         else: # applies masking by retrieving neighbors that are unmasked
             return list(filter(lambda n: not n.isMasked(), neighbors))
 
-class Grid: # orthogonal maze
+class Grid: # orthogonal maze (shape == 4) by default
     def __init__(self, rows: int, columns: int, levels = 1, shape = 4):
         self.rows = rows
         self.cols = columns
@@ -245,9 +245,17 @@ class Grid: # orthogonal maze
                 best = neighbors
             neighbor = choice(best)
             cell.link(neighbor)
+    
+    def getOpposite(self, cell, neighbor): # returns cell opposite to neighbor
+        if cell not in neighbor.getNeighbors():
+            return None
+        keyList = list(neighbor.neighbors.keys())
+        valList = list(neighbor.neighbors.values())
+        position = valList.index(cell)
+        direction = keyList[position]
+        return cell.neighbors.get(direction)
 
-
-class TriGrid(Grid): # delta grid
+class TriGrid(Grid): # delta grid (shape = 3)
     def __init__(self, rows: int, columns: int, levels = 1):
         super().__init__(rows, columns, levels, shape = 3)
         self.borders = {'north': '---', 'south': '---', 'northwest': '/', 'northeast': '\\',
@@ -326,7 +334,7 @@ class TriGrid(Grid): # delta grid
         return ' '
 
 
-class HexGrid(Grid): # sigma maze
+class HexGrid(Grid): # sigma maze (shape = 6)
     def __init__(self, rows: int, columns: int, levels = 1):
         super().__init__(rows, columns, levels, shape = 6)
 
