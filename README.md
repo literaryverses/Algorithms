@@ -25,7 +25,10 @@ Algorithms that work with mazes: automatic generation and (eventually) pathfindi
 Takes inputs from a string to generate a template of an orthogonal maze with words within them.
 
 ### maze_generation.py
-A variety of algorithms that randomly and automatically generate mazes
+Algorithms that randomly and automatically generate mazes
+
+### maze_solving.py
+Algorithms that solve mazes. Categorized as inside (can be implemented within a cell), outside (needs the entire layout), and other (miscellaneous implementations that can belong two either of the two groups but are special in their own way)
 
 ### objects.py
 Creates data structures via cell and grid classes to serve as the foundation of several types of mazes such as orthogonal (4-sided cells), delta (3-sided cells), and sigma (6-sided cells). Other features include masking (selectively removing a cell from being involved with a maze), braiding (preventing mazes from having dead ends), and stacking (building adding multiple layers on top of a maze)
@@ -52,7 +55,7 @@ Slicing floorplans can be represented by Polish Expressions (postfix notation). 
 ### orientsFP.py
 Implements Stockmeyer's polynomial-time algorithm for finding optimal orientations for slicing floorplans.  Needs three inputs: a normalized Polish Expression representing the floorplan, a string of dimensions represented as '(height, width)...' and non-decreasing cost function ψ that uses h and w (representing height and width respectively) as parameters.
 
-### simannealFP.py
+### optimalFP.py
 Implements simulated annealing to generate optimal floorplans given a series of dimensions expressed as a Polish Expression through a stochastic process. 
 
 
@@ -63,4 +66,4 @@ Algorithms involved with color. Primarily uses RGB to represent color.
 Converts between color representations into other formats of different color models.
 
 ### operations.py
-Takes a rgb input and returns several color schemes
+Takes a RGB input and returns several color schemes
