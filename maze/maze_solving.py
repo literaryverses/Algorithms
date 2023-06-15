@@ -21,15 +21,9 @@ class  Compass:
         else: # cell.coord[1] <= cell.coord[0]
             return 'north'
     def getOptions(self, facing: str):
-        length = len(self.orientations)
         index = self.orientations.index(facing) - 1
-        for i in range(4):
-            i += index
-            if i < 0:
-                i += length
-            elif i > length-1:
-                i -= length
-            yield self.orientations[i]
+        for i in range(index, index+4):
+            yield self.orientations[i%4]
 
 class Path:
     def __init__(self, start):
@@ -84,12 +78,34 @@ def wallFollower(start, end, direct):
                 break
     return path
 
-from objects import Grid
-from maze_generation import aldousBroder
-'''
-grid = aldousBroder(Grid(5,5))
-print(grid)
-path = wallFollower(grid.getCell(0,0), grid.getCell(4,4), 'right')
-print(list(path.getCoords()))
-path.cleanup()
-print(list(path.getCoords()))'''
+def pledge(start, end):
+    pass
+
+def tremaux(start, end):
+    pass
+
+## Outside algorithms
+def dead_end(grid):
+    pass
+
+def cul_de_sa(grid):
+    pass
+
+def blind_alley_filler(grid):
+    pass
+
+def blind_alley_sealer(grid):
+    pass
+
+## Other algorithms
+def recursive_backtracer(grid):
+    pass
+
+def collision_solver(grid):
+    pass
+
+def shortest_path_finder(grid):
+    pass
+
+def shortest_paths_finder(grid):
+    pass
