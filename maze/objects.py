@@ -6,6 +6,8 @@ NOTES:
 -do not use the following algos for masking
 '''
 
+#TODO: check over maze_generation and main to make sure getNeighbors and links methods are used appropriately
+
 class Cell:
     def __init__(self, row: int, column: int, level = 0):
         self.coord = (row, column, level)
@@ -20,8 +22,11 @@ class Cell:
         self.links.pop(cell, None)
         cell.links.pop(self, None)
 
-    def getLinks(self):
-        return self.links.keys()
+    def getLinks(self, masking = True): # returns all linked neighbors
+        if masking:
+            return [key for key in self.links.keys() if key]
+        else:
+            return self.links.keys()
 
     def isLinked(self, cell):
         return self.links.get(cell)
@@ -29,19 +34,12 @@ class Cell:
     def isMasked(self):
         return self.isLinked(None)
     
-    def getNeighbors(self, masking = True):
-        neighbors = [n for n in self.neighbors.values() if n is not None]
-        if not masking: # gets all existing neighbor cells
-            return neighbors
-        else: # applies masking by retrieving neighbors that are unmasked
-            return list(filter(lambda n: not n.isMasked(), neighbors))
+    def getNeighbors(self): # returns all neighbors
+        return self.neighbors.values()
         
-    def getDirections(self, masking = True):
+    def getDirections(self): # returns directions to linked neighbors
         directions = self.neighbors.keys()
-        if not masking: # gets all directions to adjacent neighbors
-            return directions
-        else: # applies masking by retrieving directions that are unmasked
-            return list(filter(lambda d: True if self.neighbors.get(d) else False, directions))
+        return list(filter(lambda d: True if self.neighbors.get(d) else False, directions))
 
 class Grid: # orthogonal maze (shape == 4) by default
     def __init__(self, rows: int, columns: int, levels = 1, shape = 4):

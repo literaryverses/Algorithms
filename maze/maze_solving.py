@@ -59,11 +59,10 @@ def randomMouse(start, end):
     return path
 
 '''
-Wall Follower: follows on the side of the wall. 
-This not guarenteed to solve if the starting position starts inside the maze
-(as opposed to a cell on the very edge of the grid)
+Wall Follower: follows on the side of the wall. This not guarenteed to solve if the starting 
+position starts inside the maze (as opposed to a cell on the very edge of the grid)
 '''
-def wallFollower(start, end, direct):
+def wallFollower(start, end, direct = 'right'):
     path = Path(start)
     cell = start
     compass = Compass(direct)
@@ -78,8 +77,13 @@ def wallFollower(start, end, direct):
                 break
     return path
 
+'''
+Pledge: runs a straight direction until it hits a wall. Afterwards, follows a wall follower
+algorithm until the number of clockwise turns is equal to the number of counterclockwise turns, 
+at which it resumes running a straight direction again.
+'''
 def pledge(start, end):
-    pass
+    direct = choice(start.neighbors.keys())
 
 def tremaux(start, end):
     pass
