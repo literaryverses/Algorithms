@@ -35,14 +35,20 @@ class Cell:
             return neighbors
         else: # applies masking by retrieving neighbors that are unmasked
             return list(filter(lambda n: not n.isMasked(), neighbors))
+        
+    def getDirections(self, masking = True):
+        directions = self.neighbors.keys()
+        if not masking: # gets all directions to adjacent neighbors
+            return directions
+        else: # applies masking by retrieving directions that are unmasked
+            return list(filter(lambda d: True if self.neighbors.get(d) else False, directions))
 
 class Grid: # orthogonal maze (shape == 4) by default
     def __init__(self, rows: int, columns: int, levels = 1, shape = 4):
         self.rows = rows
         self.cols = columns
         self.lvls = levels
-        self.grid = [[[0 for c in range(columns)]
-                      for r in range(rows)] for l in range(levels)]
+        self.grid = [[[0 for c in range(columns)] for r in range(rows)] for l in range(levels)]
         self.borders = {'north': '---', 'south': '---', 'west': '|', 'east': '|', 'up': 'O',
                         'vdoor': '   ', 'hdoor': ' ', 'down': '0', 'through': '@'}
         self.__prepareGrid(shape)
@@ -123,11 +129,11 @@ class Grid: # orthogonal maze (shape == 4) by default
         for i, direction in enumerate(directions):
             if direction in cell.neighbors.keys() and\
                 cell.isLinked(cell.neighbors[direction]) and\
-                    cell.neighbors[direction]!= None:
+                    cell.neighbors[direction] != None:
                 directions[i] = self.borders[direction]
-            else: directions[i] = False
-        if directions[0] and directions[1]:
-            return self.borders['through']
+            else:
+                directions[i] = False
+        if directions[0] and directions[1]: return self.borders['through']
         elif directions[0]: return self.borders['up']
         elif directions[1]: return self.borders['down']
         else: return
@@ -225,7 +231,7 @@ class Grid: # orthogonal maze (shape == 4) by default
         cell.links[None] = True
         for neighbor in cell.getNeighbors(False):
             if neighbor.isMasked() and neighbor != cell.neighbors.get('up')\
-                and neighbor != cell.neighbors.get('down'): # prevent z-axis linking
+                and neighbor != cell.neighbors.get('down'): # prevent z-axis linking between masked cells
                 cell.link(neighbor)
     
     def braid(self, p = 1): # link up dead ends
@@ -351,10 +357,6 @@ class HexGrid(Grid): # sigma maze (shape = 6)
         for direction in hex_cell.neighbors.keys():
             neighbor = hex_cell.neighbors[direction]
             if neighbor and hex_cell.isLinked(neighbor):
-                # proofreading
-                if hex_cell.coord == (2,1,0):
-                    print('fuck')
-                # end proofreading
                 triangle = self.__getTriangle(hex_cell, direction, triGrid)
                 triangle.link(triangle.neighbors[direction])
             elif hex_cell.isLinked(None): # hex cell links to none, hence is masked
