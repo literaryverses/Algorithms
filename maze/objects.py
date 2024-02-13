@@ -20,7 +20,7 @@ class Cell:
         self.links.pop(cell, None)
         cell.links.pop(self, None)
 
-    def getLinks(self):
+    def getLinks(self): # returns all linked neighbors
         return self.links.keys()
 
     def isLinked(self, cell):
@@ -29,19 +29,16 @@ class Cell:
     def isMasked(self):
         return self.isLinked(None)
     
-    def getNeighbors(self, masking = True):
+    def getNeighbors(self, masking = True): # returns all neighbors
         neighbors = [n for n in self.neighbors.values() if n is not None]
         if not masking: # gets all existing neighbor cells
             return neighbors
         else: # applies masking by retrieving neighbors that are unmasked
             return list(filter(lambda n: not n.isMasked(), neighbors))
         
-    def getDirections(self, masking = True):
+    def getDirections(self): # returns directions to linked neighbors
         directions = self.neighbors.keys()
-        if not masking: # gets all directions to adjacent neighbors
-            return directions
-        else: # applies masking by retrieving directions that are unmasked
-            return list(filter(lambda d: True if self.neighbors.get(d) else False, directions))
+        return list(filter(lambda d: True if self.neighbors.get(d) else False, directions))
 
 class Grid: # orthogonal maze (shape == 4) by default
     def __init__(self, rows: int, columns: int, levels = 1, shape = 4):
@@ -203,7 +200,7 @@ class Grid: # orthogonal maze (shape == 4) by default
         if not masking:
             return self.lvls*self.rows*self.cols
         else: 
-            return len(list(self.each_cell()))
+            return len(set(self.each_cell()))
 
     def each_row(self):
         for lvl in range(self.lvls):
@@ -234,13 +231,13 @@ class Grid: # orthogonal maze (shape == 4) by default
                 and neighbor != cell.neighbors.get('down'): # prevent z-axis linking between masked cells
                 cell.link(neighbor)
     
-    def braid(self, p = 1): # link up dead ends
+    # link up dead ends
+    def braid(self, p = 1): # p == proportion of dead ends allowed
         notLinked = (lambda n: True if n not in cell.getLinks() else False)
         deadEnds = (lambda c: True if len(c.getLinks()) == 1 else False)
         total_dead_ends = list(filter(deadEnds, self.each_cell()))
         shuffle(total_dead_ends)
         for cell in total_dead_ends:
-            # p == proportion of dead ends allowed
             if len(cell.getLinks()) != 1 or random() > p:
                 continue
             # get unlinked neighbors
@@ -253,7 +250,7 @@ class Grid: # orthogonal maze (shape == 4) by default
             cell.link(neighbor)
     
     def getOpposite(self, cell, neighbor): # returns cell opposite to neighbor
-        if cell not in neighbor.getNeighbors():
+        if cell not in neighbor.getLinks():
             return None
         keyList = list(neighbor.neighbors.keys())
         valList = list(neighbor.neighbors.values())
@@ -417,3 +414,11 @@ class HexGrid(Grid): # sigma maze (shape = 6)
             for x in range(3):
                 triGrid.mask(row, col+x, lvl) # top row of hexagon
                 triGrid.mask(row+1, col+x, lvl) # bottom row of hexagon
+
+from maze_generation import *
+grid = Grid(5,5)
+grid.mask(0,0)
+grid.mask(4,4)
+aldousBroder(grid)
+grid.braid()
+print(grid)

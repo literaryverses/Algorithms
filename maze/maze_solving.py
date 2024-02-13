@@ -11,14 +11,14 @@ class  Compass:
             self.orientations = 'north west south east'.split()
         elif direct == 'left':
             self.orientations = 'north east south west'.split()
-    def getOriented(self, cell):
+    def getOriented(self, cell): # orient player based on edge placement
         if cell.coord[0] == 0:
             return 'south'
         if cell.coord[1] == 0:
             return 'east'
         if cell.coord[1] > cell.coord[0]:
             return 'west'
-        else: # cell.coord[1] <= cell.coord[0]
+        else: # cell.coord[1] <= cell.coord[0] # heuristic
             return 'north'
     def getOptions(self, facing: str):
         index = self.orientations.index(facing) - 1
@@ -59,11 +59,10 @@ def randomMouse(start, end):
     return path
 
 '''
-Wall Follower: follows on the side of the wall. 
-This not guarenteed to solve if the starting position starts inside the maze
-(as opposed to a cell on the very edge of the grid)
+Wall Follower: follows on the side of the wall. This not guarenteed to solve if the starting 
+position starts inside the maze (as opposed to a cell on the very edge of the grid)
 '''
-def wallFollower(start, end, direct):
+def wallFollower(start, end, direct = 'right'):
     path = Path(start)
     cell = start
     compass = Compass(direct)
@@ -78,8 +77,25 @@ def wallFollower(start, end, direct):
                 break
     return path
 
+'''
+Pledge: runs a straight direction until it hits a wall. Afterwards, follows a wall follower
+algorithm until the number of clockwise turns is equal to the number of counterclockwise turns, 
+at which it resumes running a straight direction again.
+'''
 def pledge(start, end):
-    pass
+    path = Path(start)
+    direct = choice('right left'.split())
+    compass = Compass(direct)
+    facing = choice(start.getDirections())
+    cell = start.neighbors[facing]
+    while cell != end:
+        path.append(cell)
+        next = cell.neighbors.get(facing)
+        if not next:
+            #TODO wall follower
+        else:
+            cell = next
+    return path
 
 def tremaux(start, end):
     pass

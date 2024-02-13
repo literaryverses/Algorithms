@@ -4,4 +4,4 @@ Bellot, V., M. Cautrès, J.-M. Favreau, M. Gonzalez-Thauvin, P. Lafourcade, K. L
 
 Buck, Jamis. Mazes for Programmers: Code Your Own Twisty Little Passages. The Pragmatic Bookshelf, 2015. 
 
-Zawiślak, S., and J. Rysiński, 2020, Review of Maze Solving Algorithms for 2D Maze and Their Visualisation, in Engineer of the XXI Century: Switzerland, Springer International Publishing AG, 239-252 p., p. 239–252, doi:10.1007/978-3-030-13321-4_22.
+Zawiślak, S., and R. Niemczyk, 2020, Review of Maze Solving Algorithms for 2D Maze and Their Visualisation, in Engineer of the XXI Century: Switzerland, Springer International Publishing AG, 239-252 p., p. 239–252, doi:10.1007/978-3-030-13321-4_22.
