@@ -4,7 +4,7 @@
 from random import choice
 from collections import Counter
 
-## utilities
+## UTILITIES
 class  Compass:
     def __init__(self, direct: str):
         if direct == 'right':
@@ -45,7 +45,7 @@ class Path:
                 self.path = self.path[:i1] + self.path[i2:]
         return self.path
 
-## Inside algorithms
+## INSIDE ALGORITHMS
 '''
 Random Mouse: stimulates a mouse moving inside maze. 
 Very inefficent, especially with no memory.
@@ -100,7 +100,7 @@ def pledge(start, end):
 def tremaux(start, end):
     pass
 
-## Outside algorithms
+## OUTSIDE ALGORITHMS
 def dead_end(grid):
     pass
 
@@ -113,7 +113,7 @@ def blind_alley_filler(grid):
 def blind_alley_sealer(grid):
     pass
 
-## Other algorithms
+## OTHER ALGORITHMS
 def recursive_backtracer(grid):
     pass
 
