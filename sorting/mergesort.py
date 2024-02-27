@@ -30,7 +30,7 @@ def mergesort(array):
     return array
 
 
-def three_way_mergesort(array):
+def threeway_mergesort(array):
     if len(array) > 1:
         mid1 = len(array) // 3
         mid2 = mid1 * 2
@@ -38,9 +38,9 @@ def three_way_mergesort(array):
         mid_part = array[mid1:mid2]
         right_part = array[mid2:]
 
-        three_way_mergesort(left_part)
-        three_way_mergesort(mid_part)
-        three_way_mergesort(right_part)
+        threeway_mergesort(left_part)
+        threeway_mergesort(mid_part)
+        threeway_mergesort(right_part)
 
         i = j = k = l = 0
 
