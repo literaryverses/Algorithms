@@ -2,7 +2,7 @@ from random import randint, random, shuffle, choice
 
 '''
 NOTES:
--binary trees, sidewinder, recursive_backtracking, ellers, twist_and_turn, and kruskals are for orthogonal grids only
+-binary trees, sidewinder, recursive_division, ellers, twist_and_turn, and kruskals are for orthogonal grids only
 -do not use the following algos for masking
 '''
 
@@ -242,6 +242,8 @@ class Grid: # orthogonal maze (shape == 4) by default
                 continue
             # get unlinked neighbors
             neighbors = list(filter(notLinked, cell.getNeighbors()))
+            if not neighbors: # if neighbors is empty (corner in TriGrid)
+                continue
             # best option is joining two dead ends
             best = list(filter(deadEnds, neighbors))
             if not best:
@@ -415,10 +417,11 @@ class HexGrid(Grid): # sigma maze (shape = 6)
                 triGrid.mask(row, col+x, lvl) # top row of hexagon
                 triGrid.mask(row+1, col+x, lvl) # bottom row of hexagon
 
+#ngrowingTree
 from maze_generation import *
-grid = Grid(5,5)
-grid.mask(0,0)
-grid.mask(4,4)
-aldousBroder(grid)
+#grid = TriGrid(5,5,3)
+grid = Grid(5,5,2)
+#grid = TriGrid(5,5,3)
+recursive_backtracker(grid)
 grid.braid()
 print(grid)
