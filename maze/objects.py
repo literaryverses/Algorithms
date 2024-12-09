@@ -38,10 +38,11 @@ class Cell:
             return list(filter(lambda n: not n.isMasked(), neighbors))
 
     def getDirections(self):  # returns directions to linked neighbors
-        directions = self.neighbors.keys()
-        return list(
-            filter(lambda d: True if self.neighbors.get(d) else False, directions)
-        )
+        return [
+            direction
+            for direction, neighbor in self.neighbors.items()
+            if self.isLinked(neighbor)
+        ]
 
 
 class Grid:  # orthogonal maze (shape == 4) by default
