@@ -35,11 +35,9 @@ def wallFollower(start, end, direct="right"):
         orientations.reverse()
 
     path = Path(start)
-    current = start
+    cell = start
 
-    while current != end:
-        print(current.coord)
-
+    while cell != end:
         # check rotation access
         idx = orientations.index(orientation)
         orientation = (
@@ -48,12 +46,12 @@ def wallFollower(start, end, direct="right"):
             else orientations[(idx - 1) % 4]
         )
 
-        directions = current.getDirections()
+        directions = cell.getDirections()
 
         # move forward if possible
         if orientation in directions:
-            current = current.neighbors[orientation]
-            path.append(current)
+            cell = cell.neighbors[orientation]
+            path.append(cell)
             continue
 
         # rotate other way
@@ -65,8 +63,8 @@ def wallFollower(start, end, direct="right"):
             )
 
             if orientation in directions:
-                current = current.neighbors[orientation]
-                path.append(current)
+                cell = cell.neighbors[orientation]
+                path.append(cell)
                 break
 
     return path
@@ -79,20 +77,26 @@ at which it resumes running a straight direction again.
 """
 
 
-def pledge(start, end):
-    path = Path(start)
-    direct = choice("right left".split())
-    facing = choice(start.getDirections())
-    cell = start.neighbors[facing]
-    while cell != end:
-        path.append(cell)
-        next = cell.neighbors.get(facing)
-        if not next:
-            # TODO wall follower
-            pass
-        else:
-            cell = next
-    return path
+# def pledge(start, end):
+#     path = Path(start)
+#     direct = choice("right left".split())
+#     orientation = choice(start.getDirections())
+#     cell = start.neighbors[orientation]
+#     while cell != end:
+#         path.append(cell)
+#         directions = cell.getDirections()
+#         if orientation in directions:
+#             cell = cell.neighbors[orientation]
+#             path.append(cell)
+#             continue
+
+#         next = cell.neighbors.get(orientation)
+#         if not next:
+#             # TODO wall follower
+#             pass
+#         else:
+#             cell = next
+#     return path
 
 
 def tremaux(start, end):
