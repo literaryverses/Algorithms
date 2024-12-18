@@ -2,7 +2,8 @@
 # These are made specifically for 2D orthogonal mazes
 
 from random import choice
-from objects import Path
+from objects import Path, Cell
+from copy import deepcopy
 
 
 ## INSIDE ALGORITHMS
@@ -178,11 +179,44 @@ def tremaux(start, end):
 
 
 ## OUTSIDE ALGORITHMS
-def dead_end_filler(grid):
+def dead_end_filler(_grid, _start, _end):
     """
     Scans the maze for a dead end, upon which it starts to fill passages until it is able to move in more than one direction.
     """
-    pass
+    grid = deepcopy(_grid)
+    print(_start.coord)
+    start = grid.getCell(*_start.coord)
+    end = grid.getCell(*_end.coord)
+    for level in grid.grid:
+        for row in level:
+            for cell in row:
+                if isinstance(cell, Cell) and cell not in (start, end):
+                    # process only if the cell is a dead end and not the start/end
+                    while len(cell.getLinks()) == 1:
+                        # get the only linked neighbor
+                        neighbor = cell.getLinks()[0]
+
+                        # ensure neighbor isn't unlinked if it's the start or end
+                        if neighbor in (start, end):
+                            break
+
+                        # unlink dead-end cell from neighbor
+                        cell.unlink(neighbor)
+
+                        # move to the neighbor and check if it's also a dead end
+                        cell = neighbor
+
+    # create rest of path
+    path = Path(start)
+    visited = {start}
+    cell = start
+    while cell != end:
+        cell = choice(cell.getLinks())
+        if cell in visited and cell != start:
+            continue
+        visited.add(cell)
+        path.append(cell)
+    return path
 
 
 def cul_de_sac_filler(grid):
