@@ -275,7 +275,7 @@ class Grid:  # orthogonal maze (shape == 4) by default
                 cell.link(neighbor)
 
     # link up dead ends
-    def braid(self, p=1):  # p == proportion of dead ends allowed
+    def braid(self, p=1):  # p == proportion of dead ends NOT allowed
         notLinked = lambda n: True if n not in cell.getLinks() else False
         deadEnds = lambda c: True if len(c.getLinks()) == 1 else False
         total_dead_ends = list(filter(deadEnds, self.each_cell()))
@@ -505,6 +505,12 @@ class HexGrid(Grid):  # sigma maze (shape = 6)
 class Path:
     def __init__(self, start):
         self.path = [start]
+
+    def __add__(self, other):
+        if isinstance(other, Path):
+            sum = Path(0)
+            sum.path = self.path.extend(other.path[1:])
+            return sum
 
     def append(self, cell):  # add cell to path
         self.path.append(cell)
