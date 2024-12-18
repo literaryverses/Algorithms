@@ -184,26 +184,17 @@ def dead_end_filler(_grid, _start, _end):
     Scans the maze for a dead end, upon which it starts to fill passages until it is able to move in more than one direction.
     """
     grid = deepcopy(_grid)
-    print(_start.coord)
     start = grid.getCell(*_start.coord)
     end = grid.getCell(*_end.coord)
     for level in grid.grid:
         for row in level:
             for cell in row:
                 if isinstance(cell, Cell) and cell not in (start, end):
-                    # process only if the cell is a dead end and not the start/end
                     while len(cell.getLinks()) == 1:
-                        # get the only linked neighbor
                         neighbor = cell.getLinks()[0]
-
-                        # ensure neighbor isn't unlinked if it's the start or end
                         if neighbor in (start, end):
                             break
-
-                        # unlink dead-end cell from neighbor
                         cell.unlink(neighbor)
-
-                        # move to the neighbor and check if it's also a dead end
                         cell = neighbor
 
     # create rest of path
@@ -219,11 +210,74 @@ def dead_end_filler(_grid, _start, _end):
     return path
 
 
-def cul_de_sac_filler(grid):
+def cul_de_sac_filler(_grid, _start, _end):
     """
     Find nooses (loops with one way out of them), converts them into a dead end, then runs the dead end filler.
     """
-    pass
+    grid = deepcopy(_grid)
+    start = grid.getCell(*_start.coord)
+    end = grid.getCell(*_end.coord)
+
+    def is_outer_border(cell):
+        row, col, _ = cell.coord
+        return row == 0 or col == 0 or row == grid.rows - 1 or col == grid.cols - 1
+
+    def find_nooses(grid):
+        nooses = []
+
+        for row in range(grid.rows):
+            for col in range(grid.cols):
+                cell = grid.grid[0][row][col]
+
+                if is_outer_border(cell):
+                    continue
+
+                accessible_neighbors = [neighbor for neighbor in cell.getLinks()]
+
+                # if the cell has exactly one accessible way out, it's a noose
+                if len(accessible_neighbors) == 1:
+                    nooses.append((cell, accessible_neighbors[0]))
+
+        return nooses
+
+    def convert_nooses_to_dead_ends(nooses):
+        for noose, exit_cell in nooses:
+            # seal all links except the exit
+            for neighbor in noose.getLinks():
+                if neighbor != exit_cell:
+                    noose.unlink(neighbor)
+
+    def dead_end_filler(grid, start, end):
+        for level in grid.grid:
+            for row in level:
+                for cell in row:
+                    if isinstance(cell, Cell) and cell not in (start, end):
+                        while len(cell.getLinks()) == 1:
+                            neighbor = cell.getLinks()[0]
+                            if neighbor in (start, end):
+                                break
+                            cell.unlink(neighbor)
+                            cell = neighbor
+        return grid
+
+    while True:
+        nooses = find_nooses(grid)
+
+        if not nooses:
+            break
+        convert_nooses_to_dead_ends(nooses)
+        grid = dead_end_filler(grid, start, end)
+
+        path = Path(start)
+    visited = {start}
+    cell = start
+    while cell != end:
+        cell = choice(cell.getLinks())
+        if cell in visited and cell != start:
+            continue
+        visited.add(cell)
+        path.append(cell)
+    return path
 
 
 def blind_alley_filler(grid):
@@ -267,7 +321,7 @@ def recursive_backtracker(start, end):
     return recursion(start, end, path, visited)
 
 
-def collision_solver(grid):
+def collision_solver(start):
     """Breadth-First search algorithm that seals loops upon collision
     and then uses the dead end filler algorithm until only the path remains"""
     pass
