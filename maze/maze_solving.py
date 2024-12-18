@@ -2,7 +2,7 @@
 # These are made specifically for 2D orthogonal mazes
 
 from random import choice
-from utilities import Path
+from objects import Path
 
 
 ## INSIDE ALGORITHMS
@@ -84,34 +84,48 @@ def pledge(start, end):
     cell = start
 
     while cell != end:
-        # check rotation access
-        idx = orientations.index(orientation)
-        orientation = (
-            orientations[(idx + 1) % 4]
-            if direct == "right"
-            else orientations[(idx - 1) % 4]
-        )
-
-        directions = cell.getDirections()
-
-        # move forward if possible
-        if orientation in directions:
+        # straight direction
+        while orientation in cell.getDirections() and cell != end:
             cell = cell.neighbors[orientation]
             path.append(cell)
-            continue
 
-        # rotate other way
-        for rotation in range(3):
+        clockwise = 0
+        counterclockwise = 0
+
+        # wall follower
+        while (
+            clockwise != counterclockwise or (clockwise == 0 and counterclockwise == 0)
+        ) and cell != end:
+            # check rotation access
+            idx = orientations.index(orientation)
             orientation = (
-                orientations[(idx - rotation) % 4]
+                orientations[(idx + 1) % 4]
                 if direct == "right"
-                else orientations[(idx + rotation) % 4]
+                else orientations[(idx - 1) % 4]
             )
+            directions = cell.getDirections()
 
+            # move forward if possible
             if orientation in directions:
+                clockwise += 1
                 cell = cell.neighbors[orientation]
                 path.append(cell)
-                break
+                continue
+
+            # rotate other way
+            for rotation in range(3):
+                orientation = (
+                    orientations[(idx - rotation) % 4]
+                    if direct == "right"
+                    else orientations[(idx + rotation) % 4]
+                )
+
+                if orientation in directions:
+                    if rotation == 1:
+                        counterclockwise += 1
+                    cell = cell.neighbors[orientation]
+                    path.append(cell)
+                    break
 
     return path
 
