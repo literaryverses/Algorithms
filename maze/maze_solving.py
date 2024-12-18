@@ -143,41 +143,35 @@ def tremaux(start, end):
 
     def init_cell_visits(cell):
         directions = cell.getDirections()
-        if len(directions) > 1 and cell not in visited:
+        if cell not in visited and len(directions) > 1:
             visited[cell] = {direction: 0 for direction in directions}
 
     init_cell_visits(cell)
 
     while cell != end:
-        min_visits = float("inf")
-        next_direction = None
         directions = cell.getDirections()
-        for direction in directions:
-            if len(directions) > 1:
-                # skip if visited twice
-                if visited[cell][direction] == 2:
-                    continue
-
-                # always choose direction least visited
-                if visited[cell][direction] < min_visits:
-                    min_visits = visited[cell][direction]
-                    next_direction = direction
-            else:
-                next_direction = directions[0]
+        next_direction = None
 
         if len(directions) > 1:
-            visited[cell][next_direction] += 1
+            # select the least visited direction that hasn't been visited twice
+            next_direction = min(
+                (direction for direction in directions if visited[cell][direction] < 2),
+                key=lambda d: visited[cell][d],
+            )
+        else:
+            next_direction = directions[0]
+
+        if len(directions) > 1:
+            visited[cell][next_direction] += 1  # mark visit
 
         cell = cell.neighbors[next_direction]
         init_cell_visits(cell)
-        # mark reciprical visit
+
         if cell in visited:
-            visited[cell][
-                orientations[(orientations.index(next_direction) + 2) % 4]
-            ] += 1
-        ####
-        print("path", cell.coord)
-        ####
+            reciprocal_direction = orientations[
+                (orientations.index(next_direction) + 2) % 4
+            ]  # mark reciprical visit
+            visited[cell][reciprocal_direction] += 1
         path.append(cell)
 
     return path
