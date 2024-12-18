@@ -67,31 +67,53 @@ def wallFollower(start, end, direct="right"):
     return path
 
 
-# def pledge(start, end):
-#     """
-#     Pledge: runs a straight direction until it hits a wall. Afterwards, follows a wall follower
-#     algorithm until the number of clockwise turns is equal to the number of counterclockwise turns,
-#     at which it resumes running a straight direction again.
-#     """
-#     path = Path(start)
-#     direct = choice("right left".split())
-#     orientation = choice(start.getDirections())
-#     cell = start.neighbors[orientation]
-#     while cell != end:
-#         path.append(cell)
-#         directions = cell.getDirections()
-#         if orientation in directions:
-#             cell = cell.neighbors[orientation]
-#             path.append(cell)
-#             continue
+def pledge(start, end):
+    """
+    Pledge: runs a straight direction until it hits a wall. Afterwards, follows a wall follower
+    algorithm until the number of clockwise turns is equal to the number of counterclockwise turns,
+    at which it resumes running a straight direction again.
+    """
+    orientations = ["north", "east", "south", "west"]
+    orientation = choice(orientations)
 
-#         next = cell.neighbors.get(orientation)
-#         if not next:
-#             # TODO wall follower
-#             pass
-#         else:
-#             cell = next
-#     return path
+    direct = choice(["left", "right"])
+    if direct == "left":
+        orientations.reverse()
+
+    path = Path(start)
+    cell = start
+
+    while cell != end:
+        # check rotation access
+        idx = orientations.index(orientation)
+        orientation = (
+            orientations[(idx + 1) % 4]
+            if direct == "right"
+            else orientations[(idx - 1) % 4]
+        )
+
+        directions = cell.getDirections()
+
+        # move forward if possible
+        if orientation in directions:
+            cell = cell.neighbors[orientation]
+            path.append(cell)
+            continue
+
+        # rotate other way
+        for rotation in range(3):
+            orientation = (
+                orientations[(idx - rotation) % 4]
+                if direct == "right"
+                else orientations[(idx + rotation) % 4]
+            )
+
+            if orientation in directions:
+                cell = cell.neighbors[orientation]
+                path.append(cell)
+                break
+
+    return path
 
 
 def tremaux(start, end):
