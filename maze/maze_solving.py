@@ -6,7 +6,7 @@ from objects import Path
 
 
 ## INSIDE ALGORITHMS
-def randomMouse(start, end):
+def random_mouse(start, end):
     """
     Random Mouse: stimulates a mouse moving inside maze.
     Very inefficent, especially with no memory.
@@ -19,7 +19,7 @@ def randomMouse(start, end):
     return path
 
 
-def wallFollower(start, end, direct="right"):
+def wall_follower(start, end, direct="right"):
     """
     Wall Follower: follows on the side of the wall.
     This not guarenteed to solve if the starting position starts inside the maze
@@ -136,7 +136,51 @@ def tremaux(start, end):
     If it comes to the same crossroads and marks the direction twice,
     then it is treated as a wall.
     """
-    pass
+    cell = start
+    path = Path(cell)
+    visited = {}
+    orientations = ["north", "east", "south", "west"]
+
+    def init_cell_visits(cell):
+        directions = cell.getDirections()
+        if len(directions) > 1 and cell not in visited:
+            visited[cell] = {direction: 0 for direction in directions}
+
+    init_cell_visits(cell)
+
+    while cell != end:
+        min_visits = float("inf")
+        next_direction = None
+        directions = cell.getDirections()
+        for direction in directions:
+            if len(directions) > 1:
+                # skip if visited twice
+                if visited[cell][direction] == 2:
+                    continue
+
+                # always choose direction least visited
+                if visited[cell][direction] < min_visits:
+                    min_visits = visited[cell][direction]
+                    next_direction = direction
+            else:
+                next_direction = directions[0]
+
+        if len(directions) > 1:
+            visited[cell][next_direction] += 1
+
+        cell = cell.neighbors[next_direction]
+        init_cell_visits(cell)
+        # mark reciprical visit
+        if cell in visited:
+            visited[cell][
+                orientations[(orientations.index(next_direction) + 2) % 4]
+            ] += 1
+        ####
+        print("path", cell.coord)
+        ####
+        path.append(cell)
+
+    return path
 
 
 ## OUTSIDE ALGORITHMS
