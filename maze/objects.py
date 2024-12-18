@@ -22,7 +22,7 @@ class Cell:
         cell.links.pop(self, None)
 
     def getLinks(self):  # returns all linked neighbors
-        return self.links.keys()
+        return list(self.links.keys())
 
     def isLinked(self, cell):
         return self.links.get(cell)
