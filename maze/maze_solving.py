@@ -20,14 +20,13 @@ def random_mouse(start, end):
     return path
 
 
-def wall_follower(start, end, direct="right"):
+def wall_follower(start, end, direct="right", orientation="north"):
     """
     Wall Follower: follows on the side of the wall.
     This not guarenteed to solve if the starting position starts inside the maze
     (as opposed to a cell on the very edge of the grid)
     """
     orientations = ["north", "east", "south", "west"]
-    orientation = "north"
 
     if direct == "left":
         orientations.reverse()
@@ -268,7 +267,7 @@ def cul_de_sac_filler(_grid, _start, _end):
         convert_nooses_to_dead_ends(nooses)
         grid = dead_end_filler(grid, start, end)
 
-        path = Path(start)
+    path = Path(start)
     visited = {start}
     cell = start
     while cell != end:
@@ -280,20 +279,53 @@ def cul_de_sac_filler(_grid, _start, _end):
     return path
 
 
-def blind_alley_filler(grid):
-    """
-    Sends a wall follower to every direction at a crossroads.
-    If a follower returns from the same path then the direction is a dead end and filled.
-    """
-    pass
-
-
 def blind_alley_sealer(grid):
     """
-    Identical to the blind_alley_filler except instead of filling dead ends,
-    it seals the entrances toward them.
+    Sends a wall follower to every direction at a crossroads.
+    If a follower returns from the same path then the direction is a dead end
+    and its entrance is sealed.
     """
-    pass
+
+    def wall_follower(start, end, direct="right", orientation="north"):
+        orientations = ["north", "east", "south", "west"]
+
+        if direct == "left":
+            orientations.reverse()
+
+        path = Path(start)
+        cell = start
+
+        while cell != end:
+            # check rotation access
+            idx = orientations.index(orientation)
+            orientation = (
+                orientations[(idx + 1) % 4]
+                if direct == "right"
+                else orientations[(idx - 1) % 4]
+            )
+
+            directions = cell.getDirections()
+
+            # move forward if possible
+            if orientation in directions:
+                cell = cell.neighbors[orientation]
+                path.append(cell)
+                continue
+
+            # rotate other way
+            for rotation in range(3):
+                orientation = (
+                    orientations[(idx - rotation) % 4]
+                    if direct == "right"
+                    else orientations[(idx + rotation) % 4]
+                )
+
+                if orientation in directions:
+                    cell = cell.neighbors[orientation]
+                    path.append(cell)
+                    break
+
+        return path
 
 
 ## OTHER ALGORITHMS
